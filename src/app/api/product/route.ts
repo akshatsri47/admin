@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { collection, addDoc, getDocs, DocumentData } from "firebase/firestore";
+import { collection, addDoc } from "firebase/firestore";
 import { db } from "../../../../utils/firebase";
 import cloudinary from '../../../../utils/cloudinary';
 
