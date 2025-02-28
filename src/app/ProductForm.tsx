@@ -101,7 +101,7 @@ export default function ProductForm() {
         }
       });
 
-      await axios.post("/api/product", data, {
+    await axios.post( `${process.env.NEXT_PUBLIC_API_URL}/api/product`, data, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
