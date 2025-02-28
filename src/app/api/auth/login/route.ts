@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 
 const SECRET_KEY = "your-secret-key"; // Replace with an environment variable in production
 
-let adminUser: { email: string; password: string } | null = null; // Hardcoded user storage
+// let adminUser: { email: string; password: string } | null = null; // Hardcoded user storage
 
 export async function POST(req: Request) {
   const { email, password } = await req.json();

@@ -22,10 +22,7 @@ export default function ProductsTable() {
         { packageSize: "1kg", price: 100 },
         { packageSize: "2kg", price: 180 },
       ],
-      images: [
-        "https://via.placeholder.com/50",
-        "https://via.placeholder.com/50",
-      ],
+      images: ["/img1.jpg", "/img2.jpg"],
     },
     {
       name: "Product B",
@@ -39,7 +36,7 @@ export default function ProductsTable() {
       method: "Soil Application",
       dosage: [{ dose: "5g", arce: "1 acre" }],
       pricing: [{ packageSize: "500g", price: 60 }],
-      images: ["https://via.placeholder.com/50"],
+      images: ["/img2.jpg"],
     },
   ];
 

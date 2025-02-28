@@ -217,7 +217,7 @@ export default function ProductForm() {
               placeholder='E.g. ["Wheat","Corn"]'
               className="border border-gray-300 rounded px-3 py-2 text-sm"
               // We'll store a comma-separated string in state, then parse it on submit if needed
-              value={(formData.comonlyUsedFor as unknown) as string}
+              value={(formData.commonlyUsedFor as unknown) as string}
               onChange={handleChange}
             />
           </div>
