@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, ChangeEvent, FormEvent } from "react";
-import { useRouter } from "next/navigation";
 import axios, { AxiosError } from "axios";
 
 interface ProductFormData {
@@ -32,13 +31,15 @@ export default function ProductForm() {
     method: "",
     dosage: [],
     pricing: [],
-    images: []
+    images: [],
   });
 
-  const [pricing, setPricing] = useState<{ packageSize: string; price: number }>({
-    packageSize: "",
-    price: 0,
-  });
+  const [pricing, setPricing] = useState<{ packageSize: string; price: number }>(
+    {
+      packageSize: "",
+      price: 0,
+    }
+  );
 
   const [dose, setDose] = useState<{ dose: string; arce: string }>({
     dose: "",
@@ -47,7 +48,8 @@ export default function ProductForm() {
 
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
-  const router = useRouter();
+  const [success, setSuccess] = useState<boolean>(false);
+
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -55,13 +57,7 @@ export default function ProductForm() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleArrayChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value.split(",").map((item) => item.trim()),
-    });
-  };
+
 
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -91,13 +87,14 @@ export default function ProductForm() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    setSuccess(false); // Reset success state before submitting
 
     try {
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
         if (key === "images" && Array.isArray(value)) {
           value.forEach((image: File) => data.append("images", image));
-        } else if (Array.isArray(value) || typeof value === 'object') {
+        } else if (Array.isArray(value) || typeof value === "object") {
           data.append(key, JSON.stringify(value));
         } else {
           data.append(key, value as string);
@@ -110,7 +107,8 @@ export default function ProductForm() {
         },
       });
 
-      router.push("/product");
+      setSuccess(true); // Set success state to true
+    
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         setError(error.response?.data?.message || "Failed to add product");
@@ -204,7 +202,14 @@ export default function ProductForm() {
       >
         {loading ? "Adding..." : "Add Product"}
       </button>
+
       {error && <p className="text-red-500">{error}</p>}
+
+      {success && (
+        <p className="text-green-500">
+          Product added successfully!
+        </p>
+      )}
     </form>
   );
 }
