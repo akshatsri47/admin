@@ -316,6 +316,15 @@ export default function ProductForm() {
               Add Pricing
             </button>
           </div>
+          {formData.pricing.length > 0 && (
+            <ul className="mt-3 list-disc pl-5 text-sm text-gray-700">
+              {formData.pricing.map((p, index) => (
+                <li key={index} className="flex justify-between">
+                  {`${p.packageSize} - ₹${p.price}`}
+                </li>
+              ))}
+            </ul>
+          )}
 
           {/* Dose row */}
           <div className="flex flex-col md:flex-row gap-2">
@@ -344,6 +353,15 @@ export default function ProductForm() {
               Add Dose
             </button>
           </div>
+          {formData.dosage.length > 0 && (
+            <ul className="mt-3 list-disc pl-5 text-sm text-gray-700">
+              {formData.dosage.map((d, index) => (
+                <li key={index} className="flex justify-between">
+                  {`${d.dose} - ${d.arce}`}
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         {/* BOTTOM RIGHT: CATEGORY */}
