@@ -10,23 +10,32 @@ import {
   UserGroupIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
+interface AdminSidebarProps {
+  onHover: (expanded: boolean) => void;
+}
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ onHover }: AdminSidebarProps) {
+ 
   return (
     <aside
       className="
-        fixed top-0 left-0 z-50
-        group
-        relative
+        flex flex-col
         h-screen
         bg-white
         text-black
         w-16
         hover:w-64
-        overflow-hidden
         transition-all
         duration-300
+        overflow-hidden
+        relative
+        z-10
+        border-r
+        border-green-500
+        
       "
+      onMouseEnter={() => onHover(true)}
+    onMouseLeave={() => onHover(false)}
     >
       {/* Vertical green line */}
       <div className="absolute top-0 left-0 bottom-0 w-1 bg-green-500" />

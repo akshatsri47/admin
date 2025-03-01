@@ -1,3 +1,4 @@
+"use client"
 import React from "react";
 import Image from "next/image";
 
@@ -41,7 +42,7 @@ export default function ProductsTable() {
   ];
 
   return (
-    <div className="p-4 bg-gray-100 min-h-screen ml-64">
+    <div className="p-4 bg-gray-100 h-full ">
       <h1 className="text-xl font-semibold mb-4">Products</h1>
       <div className="overflow-x-auto bg-white shadow rounded">
         <table className="w-full text-left border-collapse">
