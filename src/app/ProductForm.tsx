@@ -10,6 +10,7 @@ interface ProductFormData {
   manufacturer: string;
   composition: string;
   commonlyUsedFor: string[];
+  tags: string[];
   avoidForCrops: string[];
   benefits: string[];
   method: string;
@@ -26,6 +27,7 @@ export default function ProductForm() {
     manufacturer: "",
     composition: "",
     commonlyUsedFor: [],
+    tags:[],
     avoidForCrops: [],
     benefits: [],
     method: "",
@@ -101,7 +103,8 @@ export default function ProductForm() {
         }
       });
 
-      await axios.post( `${process.env.NEXT_PUBLIC_API_URL}/api/product`, data, {
+      // await axios.post( `${process.env.NEXT_PUBLIC_API_URL}/api/product`, data, {
+      await axios.post( "/api/product", data, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -118,6 +121,7 @@ export default function ProductForm() {
       setLoading(false);
     }
   };
+  
 
   // -------------------------
   // Render
@@ -221,6 +225,20 @@ export default function ProductForm() {
               onChange={handleChange}
             />
           </div>
+          <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">
+              Tags
+            </label>
+            <input
+              name="tags"
+              type="text"
+              placeholder='E.g. ["weed","insetcidicde"]'
+              className="border border-gray-300 rounded px-3 py-2 text-sm"
+              // We'll store a comma-separated string in state, then parse it on submit if needed
+              value={(formData.tags as unknown) as string}
+              onChange={handleChange}
+            />
+          </div>
 
           {/* Avoid For Crops */}
           <div className="flex flex-col">
@@ -316,6 +334,15 @@ export default function ProductForm() {
               Add Pricing
             </button>
           </div>
+          {formData.pricing.length > 0 && (
+            <ul className="mt-3 list-disc pl-5 text-sm text-gray-700">
+              {formData.pricing.map((p, index) => (
+                <li key={index} className="flex justify-between">
+                  {`${p.packageSize} - ₹${p.price}`}
+                </li>
+              ))}
+            </ul>
+          )}
 
           {/* Dose row */}
           <div className="flex flex-col md:flex-row gap-2">
@@ -344,6 +371,15 @@ export default function ProductForm() {
               Add Dose
             </button>
           </div>
+          {formData.dosage.length > 0 && (
+            <ul className="mt-3 list-disc pl-5 text-sm text-gray-700">
+              {formData.dosage.map((d, index) => (
+                <li key={index} className="flex justify-between">
+                  {`${d.dose} - ${d.arce}`}
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
 
         {/* BOTTOM RIGHT: CATEGORY */}
