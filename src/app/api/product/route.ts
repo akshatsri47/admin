@@ -16,7 +16,6 @@ export async function POST(req: NextRequest) {
     const manufacturer = formData.get("manufacturer") as string;
     const composition = formData.get("composition") as string;
     const commonlyUsedFor = formData.getAll("commonlyUsedFor") as string[];
-    const tags = formData.getAll("tags") as string[]
     const avoidForCrops = formData.getAll("avoidForCrops") as string[];
     const benefits = formData.getAll("benefits") as string[];
 
@@ -42,40 +41,36 @@ export async function POST(req: NextRequest) {
       !category ||
       !manufacturer ||
       !composition ||
-      !tags ||
       !method ||
       !dosage ||
       !pricing.length ||
       !images.length
     ) {
-      return NextResponse.json(
-        { success: false, error: "Missing required fields" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
     }
 
+    const search = name.toLowerCase().replace(/\s+/g, "");
     // Upload images to Cloudinary
     const uploadedImageUrls: string[] = [];
     for (const image of images) {
       const buffer = await image.arrayBuffer();
       const base64Image = Buffer.from(buffer).toString("base64");
-      const uploadResponse = await cloudinary.uploader.upload(
-        `data:${image.type};base64,${base64Image}`,
-        {
-          folder: "products",
-          format: "jpg", // ✅ Force convert to JPG
-          transformation: [
-            { quality: "auto" }, // Auto-optimizes image quality
-            { fetch_format: "jpg" }, // Ensures JPG format
-          ],
-        }
-      );
+      const uploadResponse = await cloudinary.uploader.upload(`data:${image.type};base64,${base64Image}`, {
+        folder: "products",
+        format: "jpg", // ✅ Force convert to JPG
+        transformation: [
+          { quality: "auto" }, // Auto-optimizes image quality
+          { fetch_format: "jpg" }, // Ensures JPG format
+        ],
+      });
+      
       uploadedImageUrls.push(uploadResponse.secure_url);
     }
 
     // Creating product object
     const newProduct = {
       name,
+      
       description,
       category,
       images: uploadedImageUrls,
@@ -83,8 +78,8 @@ export async function POST(req: NextRequest) {
       manufacturer,
       composition,
       commonlyUsedFor,
-      tags,
       avoidForCrops,
+      search,
       pricing,
       dosage: {
         method,
@@ -95,18 +90,15 @@ export async function POST(req: NextRequest) {
 
     // Adding to Firestore
     const docRef = await addDoc(collection(db, "products"), newProduct);
-    return NextResponse.json(
-      { success: true, data: { id: docRef.id, ...newProduct } },
-      { status: 201 }
-    );
+    return NextResponse.json({ success: true, data: { id: docRef.id, ...newProduct } }, { status: 201 });
+
   } catch (error) {
     console.error("Error adding product:", error);
-    return NextResponse.json(
-      { success: false, error: "Error adding product" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: "Error adding product" }, { status: 500 });
   }
 }
+
+
 
 export async function GET() {
   try {
