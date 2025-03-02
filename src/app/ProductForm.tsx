@@ -10,6 +10,7 @@ interface ProductFormData {
   manufacturer: string;
   composition: string;
   commonlyUsedFor: string[];
+  tags: string[];
   avoidForCrops: string[];
   benefits: string[];
   method: string;
@@ -26,6 +27,7 @@ export default function ProductForm() {
     manufacturer: "",
     composition: "",
     commonlyUsedFor: [],
+    tags:[],
     avoidForCrops: [],
     benefits: [],
     method: "",
@@ -101,7 +103,8 @@ export default function ProductForm() {
         }
       });
 
-      await axios.post( `${process.env.NEXT_PUBLIC_API_URL}/api/product`, data, {
+      // await axios.post( `${process.env.NEXT_PUBLIC_API_URL}/api/product`, data, {
+      await axios.post( "/api/product", data, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -118,6 +121,7 @@ export default function ProductForm() {
       setLoading(false);
     }
   };
+  
 
   // -------------------------
   // Render
@@ -218,6 +222,20 @@ export default function ProductForm() {
               className="border border-gray-300 rounded px-3 py-2 text-sm"
               // We'll store a comma-separated string in state, then parse it on submit if needed
               value={(formData.commonlyUsedFor as unknown) as string}
+              onChange={handleChange}
+            />
+          </div>
+          <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">
+              Tags
+            </label>
+            <input
+              name="tags"
+              type="text"
+              placeholder='E.g. ["weed","insetcidicde"]'
+              className="border border-gray-300 rounded px-3 py-2 text-sm"
+              // We'll store a comma-separated string in state, then parse it on submit if needed
+              value={(formData.tags as unknown) as string}
               onChange={handleChange}
             />
           </div>

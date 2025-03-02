@@ -16,6 +16,7 @@ export async function POST(req: NextRequest) {
     const manufacturer = formData.get("manufacturer") as string;
     const composition = formData.get("composition") as string;
     const commonlyUsedFor = formData.getAll("commonlyUsedFor") as string[];
+    const tags = formData.getAll("tags") as string[]
     const avoidForCrops = formData.getAll("avoidForCrops") as string[];
     const benefits = formData.getAll("benefits") as string[];
 
@@ -41,6 +42,7 @@ export async function POST(req: NextRequest) {
       !category ||
       !manufacturer ||
       !composition ||
+      !tags ||
       !method ||
       !dosage ||
       !pricing.length ||
@@ -81,6 +83,7 @@ export async function POST(req: NextRequest) {
       manufacturer,
       composition,
       commonlyUsedFor,
+      tags,
       avoidForCrops,
       pricing,
       dosage: {
