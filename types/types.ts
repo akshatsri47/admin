@@ -1,13 +1,30 @@
 
 export interface Product {
-  id: string;         // Firestore-generated Product ID
-  name: string;       // Product Name
-  description: string;// Product Description
-  price: number;      // Price of the Product
-  category: string;   // Category (e.g., Electronics, Clothing)
-  stock: number;      // Available Stock
-  images: string[];   // Array of image URLs
-  createdAt: string;  // Timestamp of product creation
+  id: string;                 // Firestore-generated Product ID
+  name: string;               // Product Name (e.g., 'Bayer Evergol Xtend')
+  description: string;        // Detailed Product Description          
+  category: string;           // Category (e.g., 'Seed Treatment')
+  pricing:Pricing[];
+  images: string[];           // Array of image URLs
+  createdAt: string;          // Timestamp of product creation
+  manufacturer: string;       // Manufacturer Name (e.g., 'Bayer Crop Science')
+  composition: string;        // Composition / Technical details
+  commonlyUsedFor: string[];  // List of crops commonly used for (e.g., ['corn', 'soybean', 'cereals', 'pulses', 'rice'])
+  avoidForCrops: string[]; 
+  search?:string;
+  keywords?:string[];  // Crops to avoid usage (e.g., ['wheat', 'hybrid seed'])
+  dosage: {
+    method: string;           // Dosage method (e.g., 'Mix with water and rub on seeds')
+    dosage:{dose:string,acre:string}
+  };
+  benefits: string[];  
+  discount?:number
+      // List of product benefits
+}
+
+export interface Pricing{
+  price:number,
+  packageSize:string
 }
 
   export interface User {

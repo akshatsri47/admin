@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { collection, addDoc, getDocs, DocumentData } from "firebase/firestore";
+import { collection, addDoc, getDocs, DocumentData,doc,updateDoc,getDoc } from "firebase/firestore";
 import { db } from "../../../../utils/firebase";
 
 // pages/api/products.js
