@@ -5,10 +5,10 @@ import {
   ShoppingCartIcon,
   TagIcon,
   UsersIcon,
-  TruckIcon,
+  
   TicketIcon,
   UserGroupIcon,
-  Cog6ToothIcon,
+ 
 } from "@heroicons/react/24/outline";
 interface AdminSidebarProps {
   onHover: (expanded: boolean) => void;
@@ -137,19 +137,7 @@ export default function AdminSidebar({ onHover }: AdminSidebarProps) {
           href="#"
           className="flex items-center text-gray-700 hover:text-black px-4"
         >
-          <TruckIcon className="w-5 h-5 flex-shrink-0" />
-          <span
-            className="
-              ml-2
-              opacity-0
-              group-hover:opacity-100
-              transition-all
-              duration-300
-              whitespace-nowrap
-            "
-          >
-            Orders
-          </span>
+         
         </a>
         <a
           href="#"
@@ -187,24 +175,7 @@ export default function AdminSidebar({ onHover }: AdminSidebarProps) {
             Staff
           </span>
         </a>
-        <a
-          href="#"
-          className="flex items-center text-gray-700 hover:text-black px-4"
-        >
-          <Cog6ToothIcon className="w-5 h-5 flex-shrink-0" />
-          <span
-            className="
-              ml-2
-              opacity-0
-              group-hover:opacity-100
-              transition-all
-              duration-300
-              whitespace-nowrap
-            "
-          >
-            Settings
-          </span>
-        </a>
+     
       </nav>
     </aside>
   );
