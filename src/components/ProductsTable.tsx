@@ -49,7 +49,7 @@ export default function ProductsTable() {
       formData.append("category", editingProduct.category);
       formData.append("manufacturer", editingProduct.manufacturer);
       formData.append("composition", editingProduct.composition);
-      formData.append("method", editingProduct.dosage.method);
+      formData.append("method", editingProduct.dosage?.method || "");
   
       // Append arrays
       editingProduct.commonlyUsedFor.forEach((item) => formData.append("commonlyUsedFor", item));

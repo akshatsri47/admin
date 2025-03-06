@@ -13,7 +13,7 @@ export interface Product {
   avoidForCrops: string[]; 
   search?:string;
   keywords?:string[];  // Crops to avoid usage (e.g., ['wheat', 'hybrid seed'])
-  dosage: {
+  dosage?: {
     method: string;           // Dosage method (e.g., 'Mix with water and rub on seeds')
     dosage:{dose:string,acre:string}
   };
