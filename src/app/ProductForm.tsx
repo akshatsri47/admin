@@ -2,6 +2,7 @@
 
 import { useState, ChangeEvent, FormEvent } from "react";
 import axios, { AxiosError } from "axios";
+import Link from "next/link";
 
 interface ProductFormData {
   name: string;
@@ -136,12 +137,13 @@ export default function ProductForm() {
         <h1 className="text-xl font-semibold">Add New Product</h1>
         <div className="flex items-center gap-2">
           {/* 'Save Draft' is a placeholder to match the screenshot */}
-          <button
-            type="button"
-            className="px-4 py-2 border border-gray-300 text-black rounded hover:bg-gray-100"
-          >
-            Save Draft
-          </button>
+          <Link 
+  href="/product" 
+  className="px-4 py-2 border border-gray-300 text-black rounded hover:bg-gray-100 inline-block text-center"
+>
+  View Product
+</Link>
+
           {/* 'Add Product' is your actual submit */}
           <button
             type="submit"
