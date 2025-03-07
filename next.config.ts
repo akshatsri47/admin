@@ -31,9 +31,7 @@ const nextConfig: NextConfig = {
   },
   
   // Optional: Add experimental features if needed
-  experimental: {
-    serverComponentsExternalPackages: ['cloudinary'], // If using cloudinary in server components
-  },
+ 
 };
 
 export default nextConfig;
