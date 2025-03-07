@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import {  NextResponse } from "next/server";
 import cloudinary from "../../../../utils/cloudinary";
 export async function GET( ) {
   const timestamp = Math.round(new Date().getTime() / 1000);
