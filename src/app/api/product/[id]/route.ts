@@ -4,6 +4,16 @@ import { doc, getDoc ,deleteDoc, updateDoc} from "firebase/firestore";
 import cloudinary from "../../../../../utils/cloudinary";
 import { Product } from "../../../../../types/types";
 
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: '16mb', // Increased to handle larger images
+    },
+    responseLimit: false,
+  },
+};
+
 export async function GET(request: NextRequest) {
   try {
     const  id  = request.url.split('/').pop();

@@ -21,6 +21,17 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  
+  // Add API configuration for handling larger file uploads
+  api: {
+    bodyParser: {
+      sizeLimit: '16mb', // Increase this as needed for your largest files
+    },
+    responseLimit: false,
+  },
+  
+  // Optional: Add experimental features if needed
+ 
 };
 
 export default nextConfig;
