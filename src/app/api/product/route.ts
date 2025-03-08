@@ -50,7 +50,8 @@ export async function POST(req: NextRequest) {
     }
 
     const search = name.toLowerCase().replace(/\s+/g, "");
-    // Upload images to Cloudinary
+    const lowercategory = category.toLowerCase().replace(/\s+/g, "");
+    console.log(lowercategory);
     const uploadedImageUrls: string[] = [];
     for (const image of images) {
       const buffer = await image.arrayBuffer();
@@ -85,6 +86,7 @@ export async function POST(req: NextRequest) {
         method,
         dosage,
       },
+      lowercategory,
       benefits,
     };
 

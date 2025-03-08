@@ -10,6 +10,8 @@ export default function ProductsTable() {
   const [expandedCells, setExpandedCells] = useState<{ [key: string]: boolean }>({});
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
     fetchProducts();
@@ -19,6 +21,13 @@ export default function ProductsTable() {
     try {
       const res = await axios.get<{ data: Product[] }>("/api/product");
       setProducts(res.data.data);
+      
+      // Extract unique categories
+      const uniqueCategories = Array.from(
+        new Set(res.data.data.map(product => product.lowercategory))
+      ).filter(Boolean) as string[];
+      
+      setCategories(uniqueCategories);
     } catch (err) {
       console.error("Error fetching products:", err);
     }
@@ -83,16 +92,41 @@ export default function ProductsTable() {
     }
   };
 
+  // Filter products by selected category
+  const filteredProducts = categoryFilter === "all" 
+    ? products 
+    : products.filter(product => product.lowercategory === categoryFilter);
+
   return (
     <div className="p-4 bg-gray-100 h-full">
       <h1 className="text-xl font-semibold mb-4">Products</h1>
+      
+      {/* Category filter */}
+      <div className="mb-4">
+        <label htmlFor="category-filter" className="mr-2 font-medium text-gray-700">
+          Filter by Category:
+        </label>
+        <select
+          id="category-filter"
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="all">All Categories</option>
+          {categories.map((category) => (
+            <option key={category} value={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+      </div>
+      
       <div className="overflow-x-auto bg-white shadow rounded">
         <table className="w-full text-left border-collapse">
           <thead className="bg-gray-50 text-gray-600 uppercase text-sm">
             <tr>
               <th className="py-3 px-4 border-b">Name</th>
               <th className="py-3 px-4 border-b">Description</th>
-              <th className="py-3 px-4 border-b">Category</th>
               <th className="py-3 px-4 border-b">Manufacturer</th>
               <th className="py-3 px-4 border-b">Composition</th>
               <th className="py-3 px-4 border-b">Commonly Used For</th>
@@ -104,13 +138,12 @@ export default function ProductsTable() {
             </tr>
           </thead>
           <tbody className="text-gray-700 text-sm">
-            {products.length > 0 ? (
-              products.map((product) => (
+            {filteredProducts.length > 0 ? (
+              filteredProducts.map((product) => (
                 <tr key={product.id} className="border-b last:border-0 hover:bg-gray-50">
                   {[
                     { key: "name", value: product.name },
                     { key: "description", value: product.description },
-                    { key: "category", value: product.category },
                     { key: "manufacturer", value: product.manufacturer },
                     { key: "composition", value: product.composition },
                     { key: "commonlyUsedFor", value: product.commonlyUsedFor?.join(", ") || "N/A" },
