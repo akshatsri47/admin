@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ChangeEvent, FormEvent } from "react";
+import { useState, ChangeEvent, FormEvent, useEffect } from "react";
 import axios, { AxiosError } from "axios";
 import Link from "next/link";
 
@@ -18,6 +18,14 @@ interface ProductFormData {
   dosage: { dose: string; arce: string }[];
   pricing: { packageSize: string; price: number }[];
   images: File[];
+  imageUrls: string[];
+}
+
+interface CloudinaryCredentials {
+  signature: string;
+  timestamp: number;
+  cloudName: string;
+  apiKey: string;
 }
 
 export default function ProductForm() {
@@ -35,7 +43,12 @@ export default function ProductForm() {
     dosage: [],
     pricing: [],
     images: [],
+    imageUrls: [],
   });
+
+  const [cloudinaryCredentials, setCloudinaryCredentials] = useState<CloudinaryCredentials | null>(null);
+  const [uploadingImages, setUploadingImages] = useState<boolean>(false);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
 
   const [pricing, setPricing] = useState<{ packageSize: string; price: number }>(
     {
@@ -53,6 +66,21 @@ export default function ProductForm() {
   const [loading, setLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
 
+  // Fetch Cloudinary credentials on component mount
+  useEffect(() => {
+    const fetchCloudinaryCredentials = async () => {
+      try {
+        const response = await axios.get('/api/signature');
+        setCloudinaryCredentials(response.data);
+      } catch (error) {
+        console.error("Failed to fetch Cloudinary credentials:", error);
+        setError("Failed to initialize image upload service");
+      }
+    };
+
+    fetchCloudinaryCredentials();
+  }, []);
+
   // -------------------------
   // Handlers (unchanged)
   // -------------------------
@@ -62,10 +90,49 @@ export default function ProductForm() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // Updated image handler
   const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setFormData({ ...formData, images: Array.from(e.target.files) });
+      const files = Array.from(e.target.files);
+      setSelectedImages(files);
+      setFormData({ ...formData, images: files });
     }
+  };
+
+  // New function to upload images to Cloudinary
+  const uploadImagesToCloudinary = async () => {
+    if (!cloudinaryCredentials || selectedImages.length === 0) return [];
+
+    setUploadingImages(true);
+    const uploadedUrls: string[] = [];
+
+    try {
+      const uploadPromises = selectedImages.map(async (image) => {
+        const formData = new FormData();
+        formData.append('file', image);
+        formData.append('api_key', cloudinaryCredentials.apiKey);
+        formData.append('timestamp', cloudinaryCredentials.timestamp.toString());
+        formData.append('signature', cloudinaryCredentials.signature);
+        formData.append('folder', 'products');
+
+        const response = await axios.post(
+          `https://api.cloudinary.com/v1_1/${cloudinaryCredentials.cloudName}/image/upload`,
+          formData
+        );
+
+        return response.data.secure_url;
+      });
+
+      const results = await Promise.all(uploadPromises);
+      uploadedUrls.push(...results);
+    } catch (error) {
+      console.error("Error uploading images to Cloudinary:", error);
+      setError("Failed to upload images");
+    } finally {
+      setUploadingImages(false);
+    }
+
+    return uploadedUrls;
   };
 
   const handlePricingChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -86,6 +153,7 @@ export default function ProductForm() {
     setDose({ dose: "", arce: "" });
   };
 
+  // Updated submit handler to use Cloudinary
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -93,10 +161,20 @@ export default function ProductForm() {
     setSuccess(false);
 
     try {
+      // First upload images to Cloudinary
+      const imageUrls = await uploadImagesToCloudinary();
+      
+      if (imageUrls.length === 0 && selectedImages.length > 0) {
+        throw new Error("Failed to upload images");
+      }
+
       const data = new FormData();
+      
+      // Add all the existing fields as before
       Object.entries(formData).forEach(([key, value]) => {
-        if (key === "images" && Array.isArray(value)) {
-          value.forEach((image: File) => data.append("images", image));
+        if (key === 'images') {
+          // Skip the original images array as we've uploaded to Cloudinary
+          return;
         } else if (Array.isArray(value) || typeof value === "object") {
           data.append(key, JSON.stringify(value));
         } else {
@@ -104,8 +182,12 @@ export default function ProductForm() {
         }
       });
 
-      await axios.post( `${process.env.NEXT_PUBLIC_API_URL}/api/product`, data, {
-      // await axios.post( "/api/product", data, {
+      // Add the image URLs from Cloudinary
+      imageUrls.forEach(url => {
+        data.append("imageUrls[]", url);
+      });
+
+      await axios.post("/api/product", data, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -115,8 +197,10 @@ export default function ProductForm() {
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         setError(error.response?.data?.message || "Failed to add product");
+      } else if (error instanceof Error) {
+        setError(error.message);
       } else {
-        setError("An unexpected error occurred.");
+        setError("An unexpected error occurred");
       }
     } finally {
       setLoading(false);
@@ -136,31 +220,30 @@ export default function ProductForm() {
       <header className="w-full flex items-center justify-between p-4 bg-white shadow-sm">
         <h1 className="text-xl font-semibold">Add New Product</h1>
         <div className="flex items-center gap-2">
-          {/* 'Save Draft' is a placeholder to match the screenshot */}
           <Link 
-  href="/product" 
-  className="px-4 py-2 border border-gray-300 text-black rounded hover:bg-gray-100 inline-block text-center"
->
-  View Product
-</Link>
+            href="/product" 
+            className="px-4 py-2 border border-gray-300 text-black rounded hover:bg-gray-100 inline-block text-center"
+          >
+            View Product
+          </Link>
 
-          {/* 'Add Product' is your actual submit */}
           <button
             type="submit"
             className="px-4 py-2 bg-green-500 text-black rounded hover:bg-green-600"
-            disabled={loading}
+            disabled={loading || uploadingImages}
           >
-            {loading ? "Adding..." : "Add Product"}
+            {loading ? "Adding..." : uploadingImages ? "Uploading Images..." : "Add Product"}
           </button>
         </div>
       </header>
 
       {/* Main Content: 2-column layout on large screens */}
       <main className="grid grid-cols-1 lg:grid-cols-2 gap-6 p-6">
-        {/* LEFT COLUMN */}
+        {/* LEFT COLUMN - unchanged */}
         <section className="bg-white rounded-md shadow p-5 flex flex-col gap-4">
           <h2 className="font-semibold text-gray-700 mb-2">Product Info</h2>
 
+          {/* Product info fields - unchanged */}
           {/* Name */}
           <div className="flex flex-col">
             <label className="text-sm text-gray-600 mb-1">Product Name</label>
@@ -284,15 +367,30 @@ export default function ProductForm() {
           </div>
         </section>
 
-        {/* RIGHT COLUMN: UPLOAD IMAGE */}
+        {/* RIGHT COLUMN: UPLOAD IMAGE - updated */}
         <section className="bg-white rounded-md shadow p-5 flex flex-col gap-4">
-          <h2 className="font-semibold text-gray-700 mb-2">Upload Img</h2>
+          <h2 className="font-semibold text-gray-700 mb-2">Upload Image</h2>
 
-          {/* Image Preview Placeholder */}
-          <div className="w-full h-48 border border-dashed border-gray-300 rounded flex items-center justify-center text-gray-400 mb-2">
-            <span className="text-sm">Image Preview</span>
+          {/* Image Preview - updated to show selected images */}
+          <div className="w-full h-48 border border-dashed border-gray-300 rounded flex items-center justify-center text-gray-400 mb-2 overflow-hidden">
+            {selectedImages.length > 0 ? (
+              <div className="grid grid-cols-2 gap-2 p-2 w-full h-full">
+                {selectedImages.map((image, index) => (
+                  <div key={index} className="relative h-full">
+                    <img 
+                      src={URL.createObjectURL(image)} 
+                      alt={`Preview ${index}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <span className="text-sm">Image Preview</span>
+            )}
           </div>
 
+          {/* File input - unchanged */}
           <input
             type="file"
             multiple
@@ -303,9 +401,12 @@ export default function ProductForm() {
                        hover:file:bg-gray-100"
             onChange={handleImageChange}
           />
+          <p className="text-xs text-gray-500">
+            Images will be uploaded directly to Cloudinary when you submit the form
+          </p>
         </section>
 
-        {/* BOTTOM LEFT: PRICING & STOCK (reusing your pricing + dose) */}
+        {/* BOTTOM LEFT: PRICING & STOCK (reusing your pricing + dose) - unchanged */}
         <section className="bg-white rounded-md shadow p-5 flex flex-col gap-4">
           <h2 className="font-semibold text-gray-700 mb-2">Pricing And Stock</h2>
 
@@ -384,7 +485,7 @@ export default function ProductForm() {
           )}
         </section>
 
-        {/* BOTTOM RIGHT: CATEGORY */}
+        {/* BOTTOM RIGHT: CATEGORY - unchanged */}
         <section className="bg-white rounded-md shadow p-5 flex flex-col gap-4">
           <h2 className="font-semibold text-gray-700 mb-2">Category</h2>
 
