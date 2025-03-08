@@ -2,8 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { collection, addDoc, getDocs, DocumentData } from "firebase/firestore";
 import { db } from "../../../../utils/firebase";
 
-// pages/api/products.js
-import cloudinary from "../../../../utils/cloudinary";
+function generateKeywords(name: string): string[] {
+  const keywords: Set<string> = new Set();
+  const processedName = name.toLowerCase().replace(/\s+/g, "");
+
+  for (let i = 0; i < processedName.length; i++) {
+    for (let j = i + 1; j <= processedName.length; j++) {
+      keywords.add(processedName.substring(i, j));
+    }
+  }
+
+  return Array.from(keywords);
+}
+
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -32,8 +44,27 @@ export async function POST(req: NextRequest) {
       price: number;
     }[];
 
-    // Extract images
-    const images = formData.getAll("images") as File[];
+    // Get image URLs that were uploaded to Cloudinary
+    const imageUrls: string[] = [];
+    const imageUrlsData = formData.getAll("imageUrls[]") as string[];
+    
+    // If we get individual image URLs
+    if (imageUrlsData.length > 0) {
+      imageUrls.push(...imageUrlsData);
+    } else {
+      // Alternative: check if they're encoded as JSON
+      const imageUrlsJson = formData.get("imageUrls") as string;
+      if (imageUrlsJson) {
+        try {
+          const parsedUrls = JSON.parse(imageUrlsJson);
+          if (Array.isArray(parsedUrls)) {
+            imageUrls.push(...parsedUrls);
+          }
+        } catch (e) {
+          console.error("Error parsing image URLs:", e);
+        }
+      }
+    }
 
     if (
       !name ||
@@ -44,38 +75,23 @@ export async function POST(req: NextRequest) {
       !method ||
       !dosage ||
       !pricing.length ||
-      !images.length
+      !imageUrls.length
     ) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
     }
 
     const search = name.toLowerCase().replace(/\s+/g, "");
     const lowercategory = category.toLowerCase().replace(/\s+/g, "");
-    console.log(lowercategory);
-    const uploadedImageUrls: string[] = [];
-    for (const image of images) {
-      const buffer = await image.arrayBuffer();
-      const base64Image = Buffer.from(buffer).toString("base64");
-      const uploadResponse = await cloudinary.uploader.upload(`data:${image.type};base64,${base64Image}`, {
-        folder: "products",
-        format: "jpg", // ✅ Force convert to JPG
-        transformation: [
-          { quality: "auto" }, // Auto-optimizes image quality
-          { fetch_format: "jpg" }, // Ensures JPG format
-        ],
-      });
-      
-      uploadedImageUrls.push(uploadResponse.secure_url);
-    }
+    const createdAt = new Date().toISOString();
+    const keywords = generateKeywords(name);
 
     // Creating product object
     const newProduct = {
       name,
-      
       description,
       category,
-      images: uploadedImageUrls,
-      createdAt: new Date().toISOString(),
+      images: imageUrls, // Use the URLs directly
+      createdAt: createdAt,
       manufacturer,
       composition,
       commonlyUsedFor,
@@ -88,6 +104,7 @@ export async function POST(req: NextRequest) {
       },
       lowercategory,
       benefits,
+      keywords
     };
 
     // Adding to Firestore
@@ -100,8 +117,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-
-
+// Keep the existing GET function unchanged
 export async function GET() {
   try {
     const productsSnapshot = await getDocs(collection(db, "products"));

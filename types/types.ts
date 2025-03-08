@@ -17,9 +17,10 @@ export interface Product {
     method: string;           // Dosage method (e.g., 'Mix with water and rub on seeds')
     dosage:{dose:string,acre:string}
   };
-  lowercategory:string;
+  lowercategory?:string;
   benefits: string[];  
   discount?:number
+  imageUrls?:string[]
       // List of product benefits
 }
 
