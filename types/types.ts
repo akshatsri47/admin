@@ -76,3 +76,20 @@ export interface Pricing{
     createdAt: string;  // Timestamp of review submission
   }
   
+  export interface Crop {
+    id: string;
+    name: string;
+    imageUrl: string;
+  }
+  
+  export interface Disease {
+    id: string;
+    name: string;
+    imageUrl: string;
+    cropId: string; 
+  }
+  export interface Recommendation {
+    cropId: string;
+    diseaseId: string;
+    productIds: string[];
+  }
