@@ -34,30 +34,51 @@ export async function POST(req: Request) {
 // ✅ Handle GET request to fetch recommendations
 export async function GET(req: Request) {
     try {
-        const { searchParams } = new URL(req.url);
-        const cropId = searchParams.get("cropId");
-        const diseaseId = searchParams.get("diseaseId");
-
-        if (!cropId || !diseaseId) {
-            return NextResponse.json({ error: "cropId and diseaseId are required" }, { status: 400 });
-        }
-
-        // Query Firestore for matching recommendations
-        const q = query(collection(db, "recommendations"), where("cropId", "==", cropId), where("diseaseId", "==", diseaseId));
-        const recommendationsSnapshot = await getDocs(q);
-
-        const recommendations: Recommendation[] = recommendationsSnapshot.docs.map(doc => {
-            const data = doc.data() as Omit<Recommendation, "id">; // Ensure data has required properties
-            return { id: doc.id, ...data };
-        });
-        
-
-        return NextResponse.json(recommendations, { status: 200 });
-
-    } catch (error) {
-        return NextResponse.json(
-            { error: "Failed to fetch recommendations", details: (error as Error).message },
-            { status: 500 }
+      const { searchParams } = new URL(req.url);
+      const cropId = searchParams.get("cropId");
+      const diseaseId = searchParams.get("diseaseId");
+  
+      let q;
+  
+      if (cropId && diseaseId) {
+        // Filter by both cropId and diseaseId
+        q = query(
+          collection(db, "recommendations"),
+          where("cropId", "==", cropId),
+          where("diseaseId", "==", diseaseId)
         );
+      } else if (cropId) {
+        // Filter by cropId only
+        q = query(
+          collection(db, "recommendations"),
+          where("cropId", "==", cropId)
+        );
+      } else if (diseaseId) {
+        // Filter by diseaseId only
+        q = query(
+          collection(db, "recommendations"),
+          where("diseaseId", "==", diseaseId)
+        );
+      }
+  
+      let recommendationsSnapshot;
+      if (q) {
+        recommendationsSnapshot = await getDocs(q);
+      } else {
+        // No filters provided, fetch all recommendations
+        recommendationsSnapshot = await getDocs(collection(db, "recommendations"));
+      }
+  
+      const recommendations: Recommendation[] = recommendationsSnapshot.docs.map((doc) => {
+        const data = doc.data() as Omit<Recommendation, "id">;
+        return { id: doc.id, ...data };
+      });
+  
+      return NextResponse.json(recommendations, { status: 200 });
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Failed to fetch recommendations", details: (error as Error).message },
+        { status: 500 }
+      );
     }
-}
+  }

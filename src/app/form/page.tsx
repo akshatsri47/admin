@@ -132,6 +132,7 @@ const AddPage = () => {
         setCropMessage(`Error: ${data.error}`);
       }
     } catch (error) {
+      console.log(error);
       setCropMessage("An unexpected error occurred.");
     }
   };
@@ -158,6 +159,7 @@ const AddPage = () => {
         setDiseaseMessage(`Error: ${data.error}`);
       }
     } catch (error) {
+      console.log(error);
       setDiseaseMessage("An unexpected error occurred.");
     }
   };
@@ -184,6 +186,7 @@ const AddPage = () => {
         setRecMessage(`Error: ${data.error}`);
       }
     } catch (error) {
+      console.log(error);
       setRecMessage("An unexpected error occurred.");
     }
   };

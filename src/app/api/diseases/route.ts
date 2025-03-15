@@ -24,19 +24,21 @@ export async function POST(req: Request) {
   }
 }
 
-
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const cropId = searchParams.get("cropId");
 
-    if (!cropId) {
-      return NextResponse.json({ error: "cropId is required" }, { status: 400 });
-    }
+    let diseasesSnapshot;
 
-    // Query Firestore for diseases related to the selected crop
-    const q = query(collection(db, "diseases"), where("cropId", "==", cropId));
-    const diseasesSnapshot = await getDocs(q);
+    if (cropId) {
+      // If cropId is provided, query for diseases of that crop
+      const q = query(collection(db, "diseases"), where("cropId", "==", cropId));
+      diseasesSnapshot = await getDocs(q);
+    } else {
+      // Otherwise, fetch all diseases
+      diseasesSnapshot = await getDocs(collection(db, "diseases"));
+    }
 
     const diseases: Disease[] = diseasesSnapshot.docs.map(doc => ({
       id: doc.id,
