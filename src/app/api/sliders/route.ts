@@ -8,6 +8,7 @@ type Slide = {
   imageUrl: string;
   link: string;
   bgColor: string;
+  buttonText: string; // New field
 };
 
 // ✅ GET Handler - Fetch all slides
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
-    const { id, title, description, imageUrl, link, bgColor } = body;
+    const { id, title, description, imageUrl, link, bgColor ,buttonText} = body;
 
     if (!id) {
       return NextResponse.json({ message: "Slide ID is required for updating." }, { status: 400 });
@@ -64,6 +65,8 @@ export async function PUT(req: NextRequest) {
       imageUrl,
       link,
       bgColor,
+      buttonText,
+      
     });
 
     return NextResponse.json({ message: "Slide updated successfully" }, { status: 200 });

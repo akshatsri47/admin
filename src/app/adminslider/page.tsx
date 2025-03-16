@@ -12,6 +12,7 @@ interface Slide {
   imageUrl: string;
   link: string;
   bgColor: string;
+  buttonText: string; // New field for dynamic button text
 }
 
 export default function AdminSliders() {
@@ -24,6 +25,7 @@ export default function AdminSliders() {
     imageUrl: "",
     link: "",
     bgColor: "",
+    buttonText: "", // Initialize new field
   });
 
   useEffect(() => {
@@ -83,6 +85,7 @@ export default function AdminSliders() {
             <th className="border border-gray-300 px-4 py-2">Title</th>
             <th className="border border-gray-300 px-4 py-2">Description</th>
             <th className="border border-gray-300 px-4 py-2">Link</th>
+            <th className="border border-gray-300 px-4 py-2">Button Text</th>
             <th className="border border-gray-300 px-4 py-2">Actions</th>
           </tr>
         </thead>
@@ -95,10 +98,11 @@ export default function AdminSliders() {
               <td className="border border-gray-300 px-4 py-2">{slide.title}</td>
               <td className="border border-gray-300 px-4 py-2">{slide.description}</td>
               <td className="border border-gray-300 px-4 py-2">
-                <a href={slide.link} className="text-blue-500 underline" target="_blank">
+                <a href={slide.link} className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">
                   {slide.link}
                 </a>
               </td>
+              <td className="border border-gray-300 px-4 py-2">{slide.buttonText}</td>
               <td className="border border-gray-300 px-4 py-2 flex gap-2">
                 <button
                   onClick={() => handleEdit(slide)}
@@ -155,6 +159,24 @@ export default function AdminSliders() {
               value={formData.link}
               onChange={handleChange}
               placeholder="Link"
+              className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
+            />
+
+            <input
+              type="text"
+              name="buttonText"
+              value={formData.buttonText || ""}
+              onChange={handleChange}
+              placeholder="Button Text"
+              className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
+            />
+
+            <input
+              type="text"
+              name="bgColor"
+              value={formData.bgColor}
+              onChange={handleChange}
+              placeholder="Background Color"
               className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
             />
 
