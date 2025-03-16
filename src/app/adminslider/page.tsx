@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Trash2, Edit } from "lucide-react";
+import { Trash2, Edit, Upload, X } from "lucide-react";
 import Image from "next/image";
 
 interface Slide {
@@ -12,7 +12,7 @@ interface Slide {
   imageUrl: string;
   link: string;
   bgColor: string;
-  buttonText: string; // New field for dynamic button text
+  buttonText: string;
 }
 
 export default function AdminSliders() {
@@ -25,8 +25,11 @@ export default function AdminSliders() {
     imageUrl: "",
     link: "",
     bgColor: "",
-    buttonText: "", // Initialize new field
+    buttonText: "",
   });
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   useEffect(() => {
     fetchSlides();
@@ -51,9 +54,11 @@ export default function AdminSliders() {
     }
   };
 
+  
   const handleEdit = (slide: Slide) => {
     setEditingSlide(slide);
     setFormData(slide);
+    setPreviewImage(slide.imageUrl);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -68,10 +73,77 @@ export default function AdminSliders() {
       setSlides((prev) =>
         prev.map((slide) => (slide.id === formData.id ? formData : slide))
       );
-      setEditingSlide(null);
+      resetEditForm();
     } catch (error) {
       console.error("Error updating slide:", error);
     }
+  };
+
+  const resetEditForm = () => {
+    setEditingSlide(null);
+    setPreviewImage(null);
+    setUploadProgress(0);
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Show preview
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setPreviewImage(event.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    try {
+      setIsUploading(true);
+      
+      // Get signature from your API
+      const signatureResponse = await axios.get("/api/signature");
+      const { signature, timestamp, cloudName, apiKey } = signatureResponse.data;
+
+      // Create form data for upload
+      const uploadFormData = new FormData();
+      uploadFormData.append("file", file);
+      uploadFormData.append("signature", signature);
+      uploadFormData.append("timestamp", timestamp.toString());
+      uploadFormData.append("api_key", apiKey);
+      uploadFormData.append("folder", "products");
+
+      // Upload to Cloudinary with progress tracking
+      const response = await axios.post(
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        uploadFormData,
+        {
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round(
+              (progressEvent.loaded * 100) / (progressEvent.total || 1)
+            );
+            setUploadProgress(percentCompleted);
+          },
+        }
+      );
+
+      // Update form data with the Cloudinary URL
+      setFormData(prevFormData => ({
+        ...prevFormData,
+        imageUrl: response.data.secure_url
+      }));
+      setIsUploading(false);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      setIsUploading(false);
+      alert("Failed to upload image. Please try again.");
+    }
+  };
+
+  const removeImage = () => {
+    setPreviewImage(null);
+    setFormData(prevFormData => ({
+      ...prevFormData,
+      imageUrl: ""
+    }));
   };
 
   return (
@@ -93,7 +165,15 @@ export default function AdminSliders() {
           {slides.map((slide) => (
             <tr key={slide.id} className="hover:bg-gray-100">
               <td className="border border-gray-300 px-4 py-2">
-                <Image src={slide.imageUrl} alt={slide.title} width={80} height={50} className="rounded" />
+                {slide.imageUrl && (
+                  <Image 
+                    src={slide.imageUrl} 
+                    alt={slide.title} 
+                    width={80} 
+                    height={50} 
+                    className="rounded" 
+                  />
+                )}
               </td>
               <td className="border border-gray-300 px-4 py-2">{slide.title}</td>
               <td className="border border-gray-300 px-4 py-2">{slide.description}</td>
@@ -123,66 +203,124 @@ export default function AdminSliders() {
       </table>
 
       {editingSlide && (
-        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center">
-          <div className="bg-white p-6 rounded-md shadow-lg w-96">
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-md shadow-lg w-full max-w-lg">
             <h3 className="text-xl font-bold mb-4">Edit Slide</h3>
 
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              placeholder="Title"
-              className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
-            />
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+              <div className="flex items-center gap-2">
+                {previewImage ? (
+                  <div className="relative w-32 h-20 border rounded">
+                    <Image
+                      src={previewImage}
+                      alt="Preview"
+                      fill
+                      className="object-cover rounded"
+                    />
+                    <button
+                      onClick={removeImage}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <label
+                      htmlFor="imageUpload"
+                      className="flex items-center gap-2 cursor-pointer bg-blue-50 border border-blue-300 text-blue-600 px-4 py-2 rounded hover:bg-blue-100"
+                    >
+                      <Upload className="w-4 h-4" />
+                      <span>Upload Image</span>
+                    </label>
+                    <input
+                      id="imageUpload"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </div>
+                )}
+              </div>
+              {isUploading && (
+                <div className="mt-2">
+                  <div className="w-full bg-gray-200 rounded-full h-2.5 mt-1">
+                    <div
+                      className="bg-blue-600 h-2.5 rounded-full"
+                      style={{ width: `${uploadProgress}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Uploading: {uploadProgress}%
+                  </p>
+                </div>
+              )}
+            </div>
 
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              placeholder="Description"
-              className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
-            />
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                placeholder="Title"
+                className="w-full border border-gray-300 rounded px-3 py-2"
+              />
+            </div>
 
-            <input
-              type="text"
-              name="imageUrl"
-              value={formData.imageUrl}
-              onChange={handleChange}
-              placeholder="Image URL"
-              className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
-            />
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Description"
+                className="w-full border border-gray-300 rounded px-3 py-2"
+              />
+            </div>
 
-            <input
-              type="text"
-              name="link"
-              value={formData.link}
-              onChange={handleChange}
-              placeholder="Link"
-              className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
-            />
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Link</label>
+              <input
+                type="text"
+                name="link"
+                value={formData.link}
+                onChange={handleChange}
+                placeholder="Link"
+                className="w-full border border-gray-300 rounded px-3 py-2"
+              />
+            </div>
 
-            <input
-              type="text"
-              name="buttonText"
-              value={formData.buttonText || ""}
-              onChange={handleChange}
-              placeholder="Button Text"
-              className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
-            />
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Button Text</label>
+              <input
+                type="text"
+                name="buttonText"
+                value={formData.buttonText || ""}
+                onChange={handleChange}
+                placeholder="Button Text"
+                className="w-full border border-gray-300 rounded px-3 py-2"
+              />
+            </div>
 
-            <input
-              type="text"
-              name="bgColor"
-              value={formData.bgColor}
-              onChange={handleChange}
-              placeholder="Background Color"
-              className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
-            />
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Background Color</label>
+              <input
+                type="text"
+                name="bgColor"
+                value={formData.bgColor}
+                onChange={handleChange}
+                placeholder="Background Color (e.g. #ff0000)"
+                className="w-full border border-gray-300 rounded px-3 py-2"
+              />
+            </div>
 
             <div className="flex justify-end gap-3">
               <button
-                onClick={() => setEditingSlide(null)}
+                onClick={resetEditForm}
                 className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
               >
                 Cancel
@@ -190,8 +328,9 @@ export default function AdminSliders() {
               <button
                 onClick={handleUpdate}
                 className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                disabled={isUploading}
               >
-                Update
+                {isUploading ? "Uploading..." : "Update"}
               </button>
             </div>
           </div>
