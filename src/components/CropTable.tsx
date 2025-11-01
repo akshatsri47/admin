@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 
 export interface Crop {
   id: string;
@@ -124,9 +125,11 @@ export const CropTable: React.FC = () => {
                     className="border rounded px-2 py-1"
                   />
                 ) : (
-                  <img
+                  <Image
                     src={crop.imageUrl}
                     alt={crop.name}
+                    width={64}
+                    height={64}
                     className="h-16 w-auto object-cover"
                   />
                 )}

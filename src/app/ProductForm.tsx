@@ -377,6 +377,7 @@ export default function ProductForm() {
               <div className="grid grid-cols-2 gap-2 p-2 w-full h-full">
                 {selectedImages.map((image, index) => (
                   <div key={index} className="relative h-full">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img 
                       src={URL.createObjectURL(image)} 
                       alt={`Preview ${index}`}
