@@ -65,6 +65,8 @@ export default function ProductForm() {
   const [error, setError] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
+  const [existingCategories, setExistingCategories] = useState<string[]>([]);
+  const [isAddingCategory, setIsAddingCategory] = useState<boolean>(false);
 
   // Fetch Cloudinary credentials on component mount
   useEffect(() => {
@@ -78,7 +80,30 @@ export default function ProductForm() {
       }
     };
 
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get("/api/product");
+        // Extract unique, properly capitalized categories (to avoid duplicates from slight variations)
+        const uniqueCategories = Array.from(
+          new Set(
+            res.data.data.map((product: any) => 
+               product.category ? product.category.trim() : ""
+            ).filter(Boolean)
+          )
+        ) as string[];
+        setExistingCategories(uniqueCategories);
+        
+        // If there are existing categories, default to the first one
+        if (uniqueCategories.length > 0) {
+          setFormData(prev => ({ ...prev, category: uniqueCategories[0] }));
+        }
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+
     fetchCloudinaryCredentials();
+    fetchCategories();
   }, []);
 
   // -------------------------
@@ -486,28 +511,71 @@ export default function ProductForm() {
           )}
         </section>
 
-        {/* BOTTOM RIGHT: CATEGORY - unchanged */}
-        <section className="bg-white rounded-md shadow p-5 flex flex-col gap-4">
-          <h2 className="font-semibold text-gray-700 mb-2">Category</h2>
+        {/* BOTTOM RIGHT: CATEGORY */}
+        <section className="bg-white rounded-md shadow-md p-6 flex flex-col gap-4 border-t-4 border-green-500">
+          <h2 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon></svg>
+            Category Selection
+          </h2>
 
-          {/* Category Input */}
-          <input
-            name="category"
-            type="text"
-            placeholder="Product Category"
-            className="border border-gray-300 rounded px-3 py-2 text-sm"
-            value={formData.category}
-            onChange={handleChange}
-          />
-
-          {/* Example 'Add Category' button to mimic the design */}
-          <button
-            type="button"
-            className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm
-                       hover:bg-gray-200 w-full sm:w-auto"
-          >
-            Add Category
-          </button>
+          {isAddingCategory ? (
+            <div className="flex flex-col gap-3 bg-green-50 p-4 rounded-lg border border-green-100">
+              <label className="text-sm text-green-800 font-medium">New Category Name</label>
+              <input
+                name="category"
+                type="text"
+                placeholder="Enter new category..."
+                className="border border-green-300 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                value={formData.category}
+                onChange={handleChange}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAddingCategory(false);
+                  setFormData({ ...formData, category: existingCategories[0] || "" });
+                }}
+                className="text-sm text-red-500 hover:text-red-700 font-medium self-start mt-1 transition-colors flex items-center gap-1"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                Cancel Adding Option
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              <label className="text-sm text-gray-600 font-medium">Select Existing Category</label>
+              {existingCategories.length > 0 ? (
+                <select
+                  name="category"
+                  className="border border-gray-300 bg-gray-50 rounded-md px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-800 cursor-pointer"
+                  value={formData.category}
+                  onChange={(e: ChangeEvent<HTMLSelectElement>) => setFormData({ ...formData, category: e.target.value })}
+                >
+                  <option value="" disabled>Select a category</option>
+                  {existingCategories.map((cat, idx) => (
+                    <option key={idx} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <p className="text-sm text-gray-500 bg-gray-50 p-3 rounded border border-gray-200">No existing categories found.</p>
+              )}
+              
+              <button
+                type="button"
+                onClick={() => {
+                  setIsAddingCategory(true);
+                  setFormData({ ...formData, category: "" });
+                }}
+                className="bg-green-600 border border-transparent text-white rounded-md px-4 py-2 text-sm hover:bg-green-700 w-full sm:w-auto transition-colors font-medium flex items-center justify-center gap-2 shadow-sm mt-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Add New Option
+              </button>
+            </div>
+          )}
         </section>
       </main>
 

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import { Pricing, Product } from "../../types/types";
 
 import Image from "next/image";
@@ -20,6 +21,27 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
 }) => {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [existingCategories, setExistingCategories] = useState<string[]>([]);
+  const [isAddingCategory, setIsAddingCategory] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const res = await axios.get("/api/product");
+        const uniqueCategories = Array.from(
+          new Set(
+            res.data.data.map((p: any) => 
+               p.category ? p.category.trim() : ""
+            ).filter(Boolean)
+          )
+        ) as string[];
+        setExistingCategories(uniqueCategories);
+      } catch (error) {
+        console.error("Failed to fetch categories:", error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   if (!product) return null;
   console.log(setUploadProgress)
@@ -107,13 +129,57 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
             className="w-full border p-2 rounded"
             placeholder="Description"
           />
-          <input
-            type="text"
-            value={product.category}
-            onChange={(e) => setProduct({ ...product, category: e.target.value })}
-            className="w-full border p-2 rounded"
-            placeholder="Category"
-          />
+          <div className="flex flex-col gap-2 border p-3 rounded bg-gray-50">
+            <label className="text-sm font-semibold text-gray-700">Category</label>
+            {isAddingCategory ? (
+              <div className="flex flex-col gap-2">
+                <input
+                  type="text"
+                  value={product.category}
+                  onChange={(e) => setProduct({ ...product, category: e.target.value })}
+                  className="w-full border p-2 rounded"
+                  placeholder="New Category"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => setIsAddingCategory(false)}
+                  className="text-xs text-red-500 self-start hover:underline"
+                >
+                  Cancel Adding New Option
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <select
+                  value={product.category}
+                  onChange={(e) => setProduct({ ...product, category: e.target.value })}
+                  className="w-full border p-2 rounded bg-white"
+                >
+                  <option value="" disabled>Select a category</option>
+                  {existingCategories.map((cat, idx) => (
+                    <option key={idx} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                  {/* If the current product category isn't in the list for some reason, show it */}
+                  {product.category && !existingCategories.includes(product.category) && (
+                    <option value={product.category}>{product.category}</option>
+                  )}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAddingCategory(true);
+                    setProduct({ ...product, category: "" });
+                  }}
+                  className="text-xs text-blue-500 self-start hover:underline"
+                >
+                  + Add New Category Option
+                </button>
+              </div>
+            )}
+          </div>
           <input
             type="text"
             value={product.manufacturer}
