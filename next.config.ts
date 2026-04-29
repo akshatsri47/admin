@@ -22,10 +22,29 @@ const nextConfig: NextConfig = {
     ];
   },
   
-  // Note: API configuration is handled in individual route files for App Router
-  
   // Optional: Add experimental features if needed
- 
+  serverExternalPackages: [
+    'lodash.camelcase', 
+    'combined-stream', 
+    'asynckit', 
+    '@protobufjs/codegen', 
+    '@protobufjs/fetch', 
+    '@protobufjs/aspromise'
+  ],
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        "lodash.camelcase": false,
+        "combined-stream": false,
+        "asynckit": false,
+        "@protobufjs/codegen": false,
+        "@protobufjs/fetch": false,
+        "@protobufjs/aspromise": false,
+      };
+    }
+    return config;
+  },
 };
 
 export default nextConfig;

@@ -86,7 +86,7 @@ export default function ProductForm() {
         // Extract unique, properly capitalized categories (to avoid duplicates from slight variations)
         const uniqueCategories = Array.from(
           new Set(
-            res.data.data.map((product: any) => 
+            res.data.data.map((product: { category?: string }) => 
                product.category ? product.category.trim() : ""
             ).filter(Boolean)
           )

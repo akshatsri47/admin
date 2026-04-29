@@ -30,7 +30,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
         const res = await axios.get("/api/product");
         const uniqueCategories = Array.from(
           new Set(
-            res.data.data.map((p: any) => 
+            res.data.data.map((p: Product) => 
                p.category ? p.category.trim() : ""
             ).filter(Boolean)
           )
