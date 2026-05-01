@@ -33,6 +33,10 @@ export async function POST(req: NextRequest) {
       price: number;
     }[];
 
+    // Extract discount (optional, defaults to 0)
+    const discountRaw = formData.get("discount");
+    const discount = discountRaw !== null ? Math.min(100, Math.max(0, Number(discountRaw))) : 0;
+
     // Get image URLs that were uploaded to Cloudinary
     const imageUrls: string[] = [];
     const imageUrlsData = formData.getAll("imageUrls[]") as string[];
@@ -93,7 +97,8 @@ export async function POST(req: NextRequest) {
       },
       lowercategory,
       benefits,
-      keywords
+      keywords,
+      discount,
     };
 
     // Adding to Firestore

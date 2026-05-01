@@ -336,6 +336,33 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
             + Add Pricing Option
           </button>
 
+          {/* Discount */}
+          <div className="flex flex-col gap-1 border border-orange-200 bg-orange-50 rounded-lg p-3 mt-2">
+            <label className="text-sm font-semibold text-orange-800 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500"><path d="M9 15 15 9"/><circle cx="9.5" cy="9.5" r=".5" fill="currentColor"/><circle cx="14.5" cy="14.5" r=".5" fill="currentColor"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
+              Product Discount (%)
+            </label>
+            <p className="text-xs text-orange-600 mb-1">Set to 0 to remove. The frontend applies the higher of this or any active global coupon.</p>
+            <div className="flex items-center gap-3">
+              <input
+                type="number"
+                min="0"
+                max="100"
+                value={product.discount ?? 0}
+                onChange={(e) =>
+                  setProduct({ ...product, discount: Math.min(100, Math.max(0, Number(e.target.value))) })
+                }
+                className="border border-orange-300 bg-white rounded px-3 py-1.5 text-sm w-24 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                placeholder="0"
+              />
+              <span className="text-sm font-medium text-orange-700">
+                {(product.discount ?? 0) > 0
+                  ? `${product.discount}% OFF active`
+                  : "No discount"}
+              </span>
+            </div>
+          </div>
+
           {/* Images Section */}
           <h3 className="text-sm font-semibold">Upload Images</h3>
           <input

@@ -19,6 +19,7 @@ interface ProductFormData {
   pricing: { packageSize: string; price: number }[];
   images: File[];
   imageUrls: string[];
+  discount: number;
 }
 
 interface CloudinaryCredentials {
@@ -44,6 +45,7 @@ export default function ProductForm() {
     pricing: [],
     images: [],
     imageUrls: [],
+    discount: 0,
   });
 
   const [cloudinaryCredentials, setCloudinaryCredentials] = useState<CloudinaryCredentials | null>(null);
@@ -509,6 +511,28 @@ export default function ProductForm() {
               ))}
             </ul>
           )}
+
+          {/* Discount */}
+          <div className="flex flex-col gap-1 border-t pt-4 mt-2">
+            <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500"><path d="M9 15 15 9"/><circle cx="9.5" cy="9.5" r=".5" fill="currentColor"/><circle cx="14.5" cy="14.5" r=".5" fill="currentColor"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
+              Product Discount (%)
+            </label>
+            <p className="text-xs text-gray-400 mb-1">Leave at 0 for no product-specific discount. The frontend will automatically apply the higher of this discount or any active global coupon.</p>
+            <div className="flex items-center gap-3">
+              <input
+                name="discount"
+                type="number"
+                min="0"
+                max="100"
+                placeholder="0"
+                className="border border-gray-300 rounded px-3 py-2 text-sm w-32 focus:outline-none focus:ring-2 focus:ring-orange-400"
+                value={formData.discount}
+                onChange={(e) => setFormData({ ...formData, discount: Math.min(100, Math.max(0, Number(e.target.value))) })}
+              />
+              <span className="text-sm text-gray-500 font-medium">{formData.discount > 0 ? `${formData.discount}% OFF will be shown` : "No discount"}</span>
+            </div>
+          </div>
         </section>
 
         {/* BOTTOM RIGHT: CATEGORY */}

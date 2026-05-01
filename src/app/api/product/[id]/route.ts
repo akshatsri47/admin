@@ -114,6 +114,12 @@ export async function PUT(
       price: number;
     }[];
 
+    // Extract discount (optional – keep existing value if not provided)
+    const discountRaw = formData.get("discount");
+    const discount = discountRaw !== null
+      ? Math.min(100, Math.max(0, Number(discountRaw)))
+      : (existingProduct.discount ?? 0);
+
     // Get image URLs - exactly as done in POST API
     const imageUrls: string[] = [];
     const imageUrlsData = formData.getAll("imageUrls[]") as string[];
@@ -196,15 +202,13 @@ export async function PUT(
       composition,
       commonlyUsedFor,
       avoidForCrops,
-     
       pricing,
       dosage: {
         method,
         dosage,
       },
-     
       benefits,
-      
+      discount,
     };
 
     // Update in Firestore

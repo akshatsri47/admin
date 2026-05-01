@@ -94,6 +94,9 @@ export default function ProductsTable() {
       // Append JSON data for complex fields
       formData.append("dosage", JSON.stringify(editingProduct.dosage?.dosage || { dose: "", acre: "" }));
       formData.append("pricing", JSON.stringify(editingProduct.pricing || []));
+
+      // Append discount
+      formData.append("discount", String(editingProduct.discount ?? 0));
       
       // Append arrays
       if (editingProduct.commonlyUsedFor && editingProduct.commonlyUsedFor.length) {
@@ -221,6 +224,7 @@ export default function ProductsTable() {
               <th className="py-3 px-4 border-b">Avoid For Crops</th>
               <th className="py-3 px-4 border-b">Benefits</th>
               <th className="py-3 px-4 border-b">Method</th>
+              <th className="py-3 px-4 border-b">Discount</th>
               <th className="py-3 px-4 border-b">Images</th>
               <th className="py-3 px-4 border-b">Actions</th>
             </tr>
@@ -251,6 +255,17 @@ export default function ProductsTable() {
                       )}
                     </td>
                   ))}
+
+                  {/* Discount */}
+                  <td className="py-2 px-4 text-center">
+                    {(product.discount ?? 0) > 0 ? (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-700 border border-orange-200">
+                        {product.discount}% OFF
+                      </span>
+                    ) : (
+                      <span className="text-gray-400 text-xs">—</span>
+                    )}
+                  </td>
 
                   {/* Images */}
                   <td className="py-2 px-4">
@@ -294,7 +309,7 @@ export default function ProductsTable() {
               ))
             ) : (
               <tr>
-                <td colSpan={10} className="py-4 px-4 text-center text-gray-500">No products found.</td>
+                <td colSpan={11} className="py-4 px-4 text-center text-gray-500">No products found.</td>
               </tr>
             )}
           </tbody>
