@@ -346,11 +346,11 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
             <div className="flex items-center gap-3">
               <input
                 type="number"
-                min="0"
+                min="-100"
                 max="100"
                 value={product.discount ?? 0}
                 onChange={(e) =>
-                  setProduct({ ...product, discount: Math.min(100, Math.max(0, Number(e.target.value))) })
+                  setProduct({ ...product, discount: Math.min(100, Math.max(-100, Number(e.target.value))) })
                 }
                 className="border border-orange-300 bg-white rounded px-3 py-1.5 text-sm w-24 focus:outline-none focus:ring-2 focus:ring-orange-400"
                 placeholder="0"

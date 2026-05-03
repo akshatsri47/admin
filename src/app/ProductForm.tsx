@@ -52,6 +52,29 @@ export default function ProductForm() {
   const [uploadingImages, setUploadingImages] = useState<boolean>(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
 
+  // Discount helper state — two price fields that compute formData.discount
+  const [discountPrices, setDiscountPrices] = useState<{ originalPrice: string; discountedPrice: string }>({
+    originalPrice: "",
+    discountedPrice: "",
+  });
+
+  /** Recomputes discount % whenever either price field changes */
+  const handleDiscountPriceChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const updated = { ...discountPrices, [e.target.name]: e.target.value };
+    setDiscountPrices(updated);
+
+    const original = parseFloat(updated.originalPrice);
+    const discounted = parseFloat(updated.discountedPrice);
+
+    if (!isNaN(original) && !isNaN(discounted) && original > 0 && discounted >= 0) {
+      const pct = ((original - discounted) / original) * 100;
+      // Clamp between 0 and 100; negative means markup — store as-is
+      setFormData((prev) => ({ ...prev, discount: Math.round(pct * 100) / 100 }));
+    } else {
+      setFormData((prev) => ({ ...prev, discount: 0 }));
+    }
+  };
+
   const [pricing, setPricing] = useState<{ packageSize: string; price: number }>(
     {
       packageSize: "",
@@ -512,25 +535,68 @@ export default function ProductForm() {
             </ul>
           )}
 
-          {/* Discount */}
-          <div className="flex flex-col gap-1 border-t pt-4 mt-2">
+          {/* Discount — calculated from Original & Discounted price */}
+          <div className="flex flex-col gap-3 border-t pt-4 mt-2">
             <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500"><path d="M9 15 15 9"/><circle cx="9.5" cy="9.5" r=".5" fill="currentColor"/><circle cx="14.5" cy="14.5" r=".5" fill="currentColor"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
-              Product Discount (%)
+              Discount Calculator
             </label>
-            <p className="text-xs text-gray-400 mb-1">Leave at 0 for no product-specific discount. The frontend will automatically apply the higher of this discount or any active global coupon.</p>
-            <div className="flex items-center gap-3">
-              <input
-                name="discount"
-                type="number"
-                min="0"
-                max="100"
-                placeholder="0"
-                className="border border-gray-300 rounded px-3 py-2 text-sm w-32 focus:outline-none focus:ring-2 focus:ring-orange-400"
-                value={formData.discount}
-                onChange={(e) => setFormData({ ...formData, discount: Math.min(100, Math.max(0, Number(e.target.value))) })}
-              />
-              <span className="text-sm text-gray-500 font-medium">{formData.discount > 0 ? `${formData.discount}% OFF will be shown` : "No discount"}</span>
+            <p className="text-xs text-gray-400">
+              Enter the original and discounted prices — the discount % will be calculated automatically.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3">
+              {/* Original Price */}
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-xs text-gray-500 font-medium">Original Price (₹)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
+                  <input
+                    name="originalPrice"
+                    type="number"
+                    min="0"
+                    placeholder="e.g. 1000"
+                    className="border border-gray-300 rounded px-3 py-2 pl-7 text-sm w-full focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    value={discountPrices.originalPrice}
+                    onChange={handleDiscountPriceChange}
+                  />
+                </div>
+              </div>
+
+              {/* Discounted Price */}
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-xs text-gray-500 font-medium">Discounted Price (₹)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">₹</span>
+                  <input
+                    name="discountedPrice"
+                    type="number"
+                    min="0"
+                    placeholder="e.g. 800"
+                    className="border border-gray-300 rounded px-3 py-2 pl-7 text-sm w-full focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    value={discountPrices.discountedPrice}
+                    onChange={handleDiscountPriceChange}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Live result badge */}
+            <div className="flex items-center gap-3 bg-orange-50 border border-orange-200 rounded-md px-4 py-3">
+              <div className="flex flex-col">
+                <span className="text-xs text-gray-500 uppercase tracking-wide font-medium">Calculated Discount</span>
+                {formData.discount > 0 ? (
+                  <span className="text-xl font-bold text-orange-600">{formData.discount}% OFF</span>
+                ) : (
+                  <span className="text-sm text-gray-400 italic">Enter prices above to calculate</span>
+                )}
+              </div>
+              {discountPrices.originalPrice && discountPrices.discountedPrice && formData.discount > 0 && (
+                <div className="ml-auto text-xs text-gray-500 bg-white border border-gray-200 rounded px-3 py-2 leading-relaxed">
+                  <div>Discount = ₹{discountPrices.originalPrice} − ₹{discountPrices.discountedPrice} = <strong>₹{(parseFloat(discountPrices.originalPrice) - parseFloat(discountPrices.discountedPrice)).toFixed(2)}</strong></div>
+                  <div>Discount % = ({(parseFloat(discountPrices.originalPrice) - parseFloat(discountPrices.discountedPrice)).toFixed(2)} / {discountPrices.originalPrice}) × 100 = <strong className="text-orange-600">{formData.discount}%</strong></div>
+                </div>
+              )}
             </div>
           </div>
         </section>

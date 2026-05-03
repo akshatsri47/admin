@@ -117,7 +117,7 @@ export async function PUT(
     // Extract discount (optional – keep existing value if not provided)
     const discountRaw = formData.get("discount");
     const discount = discountRaw !== null
-      ? Math.min(100, Math.max(0, Number(discountRaw)))
+      ? Math.min(100, Math.max(-100, Number(discountRaw)))
       : (existingProduct.discount ?? 0);
 
     // Get image URLs - exactly as done in POST API
