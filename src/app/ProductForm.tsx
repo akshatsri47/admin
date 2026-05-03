@@ -459,7 +459,10 @@ export default function ProductForm() {
 
         {/* BOTTOM LEFT: PRICING & STOCK (reusing your pricing + dose) - unchanged */}
         <section className="bg-white rounded-md shadow p-5 flex flex-col gap-4">
-          <h2 className="font-semibold text-gray-700 mb-2">Pricing And Stock</h2>
+          <h2 className="font-semibold text-gray-700 mb-1">Pricing And Stock</h2>
+          <p className="text-xs text-gray-400 mb-1">
+            Enter the <strong>selling price</strong> (what the customer pays after discount) — use the Discount Calculator below to set the % shown on the storefront.
+          </p>
 
           {/* Pricing row */}
           <div className="flex flex-col md:flex-row gap-2">
@@ -474,7 +477,7 @@ export default function ProductForm() {
             <input
               name="price"
               type="number"
-              placeholder="Price"
+              placeholder="Selling Price (₹)"
               className="border border-gray-300 rounded px-3 py-2 text-sm w-full"
               onChange={handlePricingChange}
               value={pricing.price}
