@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "../../../../../utils/firebase";
-import { doc, getDoc ,deleteDoc, updateDoc} from "firebase/firestore";
+import { doc, getDoc ,deleteDoc, updateDoc, type UpdateData, type DocumentData} from "firebase/firestore";
 import cloudinary from "../../../../../utils/cloudinary";
 // import { Product } from "../../../../../types/types";
 
@@ -148,6 +148,25 @@ export async function PUT(
       }
     }
 
+    // Validate required fields BEFORE touching Cloudinary or Firestore,
+    // so a rejected request can never delete existing images.
+    if (
+      !name ||
+      !description ||
+      !category ||
+      !manufacturer ||
+      !composition ||
+      !method ||
+      !dosage ||
+      !pricing.length ||
+      !imageUrls.length
+    ) {
+      return NextResponse.json(
+        { success: false, error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
     // Get existing images from the product
     const oldImages = existingProduct.images || [];
     
@@ -172,24 +191,6 @@ export async function PUT(
           console.error("Error deleting image from Cloudinary:", error);
         }
       }
-    }
-
-    // Validate required fields
-    if (
-      !name ||
-      !description ||
-      !category ||
-      !manufacturer ||
-      !composition ||
-      !method ||
-      !dosage ||
-      !pricing.length ||
-      !imageUrls.length
-    ) {
-      return NextResponse.json(
-        { success: false, error: "Missing required fields" },
-        { status: 400 }
-      );
     }
 
    
@@ -228,6 +229,73 @@ export async function PUT(
 
   } catch (error) {
     console.error("Error updating product:", error);
+    return NextResponse.json(
+      { success: false, error: "Error updating product", details: error instanceof Error ? error.message : String(error) },
+      { status: 500 }
+    );
+  }
+}
+
+// Lightweight partial update (e.g. quick COD toggle from the products table).
+// Accepts a JSON body — no full-form validation like PUT.
+export async function PATCH(req: NextRequest) {
+  try {
+    const id = req.url.split('/').pop();
+
+    if (!id) {
+      return NextResponse.json(
+        { success: false, error: "Product ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const body = await req.json();
+
+    // Check if product exists first
+    const productRef = doc(db, "products", id);
+    const productSnap = await getDoc(productRef);
+
+    if (!productSnap.exists()) {
+      return NextResponse.json(
+        { success: false, error: "Product not found" },
+        { status: 404 }
+      );
+    }
+
+    // Whitelist of fields allowed to be patched
+    const updates: UpdateData<DocumentData> = {};
+
+    if (typeof body.codAvailable === "boolean") {
+      updates.codAvailable = body.codAvailable;
+    }
+
+    if (
+      body.discount !== undefined &&
+      body.discount !== null &&
+      !Number.isNaN(Number(body.discount))
+    ) {
+      updates.discount = Math.min(100, Math.max(-100, Number(body.discount)));
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json(
+        { success: false, error: "No valid fields to update. Allowed fields: codAvailable, discount" },
+        { status: 400 }
+      );
+    }
+
+    updates.updatedAt = new Date().toISOString();
+
+    await updateDoc(productRef, updates);
+
+    return NextResponse.json({
+      success: true,
+      data: { id, ...updates },
+      message: "Product updated successfully",
+    }, { status: 200 });
+
+  } catch (error) {
+    console.error("Error patching product:", error);
     return NextResponse.json(
       { success: false, error: "Error updating product", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }

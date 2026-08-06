@@ -21,6 +21,7 @@ export default function ProductsTable() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [categories, setCategories] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [codToggling, setCodToggling] = useState<string | null>(null);
   const [cloudinaryCredentials, setCloudinaryCredentials] = useState<CloudinaryCredentials | null>(null);
 
   useEffect(() => {
@@ -121,7 +122,10 @@ export default function ProductsTable() {
       }
       
       // Append existing image URLs and new image URLs
-      newImageUrls.forEach(url => {
+      // (existing images must be re-sent, otherwise the API treats them as removed
+      //  and rejects the update / deletes them from Cloudinary)
+      const allImageUrls = [...(editingProduct.images || []), ...newImageUrls];
+      allImageUrls.forEach(url => {
         formData.append("imageUrls[]", url);
       });
       // Step 3: Send update request with FormData
@@ -181,6 +185,31 @@ export default function ProductsTable() {
       } catch (err) {
         console.error("Error deleting product:", err);
       }
+    }
+  };
+
+  // Quick toggle for COD availability directly from the table (no edit modal needed)
+  const handleCodToggle = async (product: Product) => {
+    const newValue = !(product.codAvailable ?? true);
+
+    // Optimistic update
+    setProducts((prev) =>
+      prev.map((p) => (p.id === product.id ? { ...p, codAvailable: newValue } : p))
+    );
+    setCodToggling(product.id);
+    setError("");
+
+    try {
+      await axios.patch(`/api/product/${product.id}`, { codAvailable: newValue });
+    } catch (err) {
+      console.error("Error toggling COD availability:", err);
+      // Revert on failure
+      setProducts((prev) =>
+        prev.map((p) => (p.id === product.id ? { ...p, codAvailable: !newValue } : p))
+      );
+      setError("Failed to update COD availability. Please try again.");
+    } finally {
+      setCodToggling(null);
     }
   };
 
@@ -271,17 +300,25 @@ export default function ProductsTable() {
                     )}
                   </td>
 
-                  {/* COD availability */}
+                  {/* COD availability — click the badge to toggle */}
                   <td className="py-2 px-4 text-center">
-                    {(product.codAvailable ?? true) ? (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200">
-                        COD ✓
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">
-                        Online only
-                      </span>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleCodToggle(product)}
+                      disabled={codToggling === product.id}
+                      title="Click to toggle COD availability"
+                      className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-bold border transition cursor-pointer disabled:opacity-60 disabled:cursor-wait ${
+                        (product.codAvailable ?? true)
+                          ? "bg-green-100 text-green-700 border-green-200 hover:bg-green-200"
+                          : "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200"
+                      }`}
+                    >
+                      {codToggling === product.id
+                        ? "Saving..."
+                        : (product.codAvailable ?? true)
+                        ? "COD ✓"
+                        : "Online only"}
+                    </button>
                   </td>
 
                   {/* Images */}
