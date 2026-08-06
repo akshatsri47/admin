@@ -97,6 +97,9 @@ export default function ProductsTable() {
 
       // Append discount
       formData.append("discount", String(editingProduct.discount ?? 0));
+
+      // Append COD availability (default true when not set)
+      formData.append("codAvailable", String(editingProduct.codAvailable ?? true));
       
       // Append arrays
       if (editingProduct.commonlyUsedFor && editingProduct.commonlyUsedFor.length) {
@@ -225,6 +228,7 @@ export default function ProductsTable() {
               <th className="py-3 px-4 border-b">Benefits</th>
               <th className="py-3 px-4 border-b">Method</th>
               <th className="py-3 px-4 border-b">Discount</th>
+              <th className="py-3 px-4 border-b">COD</th>
               <th className="py-3 px-4 border-b">Images</th>
               <th className="py-3 px-4 border-b">Actions</th>
             </tr>
@@ -264,6 +268,19 @@ export default function ProductsTable() {
                       </span>
                     ) : (
                       <span className="text-gray-400 text-xs">—</span>
+                    )}
+                  </td>
+
+                  {/* COD availability */}
+                  <td className="py-2 px-4 text-center">
+                    {(product.codAvailable ?? true) ? (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200">
+                        COD ✓
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600 border border-gray-200">
+                        Online only
+                      </span>
                     )}
                   </td>
 
@@ -309,7 +326,7 @@ export default function ProductsTable() {
               ))
             ) : (
               <tr>
-                <td colSpan={11} className="py-4 px-4 text-center text-gray-500">No products found.</td>
+                <td colSpan={12} className="py-4 px-4 text-center text-gray-500">No products found.</td>
               </tr>
             )}
           </tbody>

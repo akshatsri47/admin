@@ -120,6 +120,12 @@ export async function PUT(
       ? Math.min(100, Math.max(-100, Number(discountRaw)))
       : (existingProduct.discount ?? 0);
 
+    // Extract COD availability (optional – keep existing value if not provided, default true)
+    const codAvailableRaw = formData.get("codAvailable");
+    const codAvailable = codAvailableRaw !== null
+      ? codAvailableRaw === "true"
+      : (existingProduct.codAvailable ?? true);
+
     // Get image URLs - exactly as done in POST API
     const imageUrls: string[] = [];
     const imageUrlsData = formData.getAll("imageUrls[]") as string[];
@@ -209,6 +215,7 @@ export async function PUT(
       },
       benefits,
       discount,
+      codAvailable,
     };
 
     // Update in Firestore

@@ -20,6 +20,7 @@ interface ProductFormData {
   images: File[];
   imageUrls: string[];
   discount: number;
+  codAvailable: boolean;
 }
 
 interface CloudinaryCredentials {
@@ -46,6 +47,7 @@ export default function ProductForm() {
     images: [],
     imageUrls: [],
     discount: 0,
+    codAvailable: true,
   });
 
   const [cloudinaryCredentials, setCloudinaryCredentials] = useState<CloudinaryCredentials | null>(null);
@@ -601,6 +603,27 @@ export default function ProductForm() {
                 </div>
               )}
             </div>
+          </div>
+
+          {/* COD Availability */}
+          <div className="flex items-start gap-3 border-t pt-4 mt-2">
+            <input
+              id="codAvailable"
+              name="codAvailable"
+              type="checkbox"
+              checked={formData.codAvailable}
+              onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                setFormData({ ...formData, codAvailable: e.target.checked })
+              }
+              className="mt-1 h-4 w-4 accent-green-600 cursor-pointer"
+            />
+            <label htmlFor="codAvailable" className="text-sm text-gray-700 cursor-pointer">
+              <span className="font-semibold">Allow Cash on Delivery (COD)</span>
+              <span className="block text-xs text-gray-400 mt-0.5">
+                If unchecked, customers can only buy this product via online payment.
+                COD orders include a 15% COD fee.
+              </span>
+            </label>
           </div>
         </section>
 

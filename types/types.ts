@@ -20,6 +20,7 @@ export interface Product {
   lowercategory?:string;
   benefits: string[];  
   discount?:number
+  codAvailable?:boolean   // false = online payment only (COD disabled). Missing = COD allowed.
   imageUrls?:string[]
       // List of product benefits
 }

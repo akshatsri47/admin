@@ -37,6 +37,10 @@ export async function POST(req: NextRequest) {
     const discountRaw = formData.get("discount");
     const discount = discountRaw !== null ? Math.min(100, Math.max(-100, Number(discountRaw))) : 0;
 
+    // Extract COD availability (optional, defaults to true = COD allowed)
+    const codAvailableRaw = formData.get("codAvailable");
+    const codAvailable = codAvailableRaw === null ? true : codAvailableRaw === "true";
+
     // Get image URLs that were uploaded to Cloudinary
     const imageUrls: string[] = [];
     const imageUrlsData = formData.getAll("imageUrls[]") as string[];
@@ -99,6 +103,7 @@ export async function POST(req: NextRequest) {
       benefits,
       keywords,
       discount,
+      codAvailable,
     };
 
     // Adding to Firestore

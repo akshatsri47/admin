@@ -363,6 +363,23 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
             </div>
           </div>
 
+          {/* COD Availability */}
+          <div className="flex items-start gap-3 border border-green-200 bg-green-50 rounded-lg p-3 mt-2">
+            <input
+              id="editCodAvailable"
+              type="checkbox"
+              checked={product.codAvailable ?? true}
+              onChange={(e) => setProduct({ ...product, codAvailable: e.target.checked })}
+              className="mt-1 h-4 w-4 accent-green-600 cursor-pointer"
+            />
+            <label htmlFor="editCodAvailable" className="text-sm text-green-900 cursor-pointer">
+              <span className="font-semibold">Allow Cash on Delivery (COD)</span>
+              <span className="block text-xs text-green-700 mt-0.5">
+                If unchecked, customers can only buy this product via online payment. COD orders include a 15% COD fee.
+              </span>
+            </label>
+          </div>
+
           {/* Images Section */}
           <h3 className="text-sm font-semibold">Upload Images</h3>
           <input
