@@ -621,7 +621,7 @@ export default function ProductForm() {
               <span className="font-semibold">Allow Cash on Delivery (COD)</span>
               <span className="block text-xs text-gray-400 mt-0.5">
                 If unchecked, customers can only buy this product via online payment.
-                COD orders include a 15% COD fee.
+                COD orders: customer pays 15% online upfront, remaining 85% on delivery.
               </span>
             </label>
           </div>
