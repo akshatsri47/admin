@@ -55,6 +55,10 @@ export default function AdminSidebar({ onHover }: AdminSidebarProps) {
 
       {/* Navigation */}
       <nav className="flex flex-col mt-4 space-y-2">
+        <Link href="/orders" className="flex items-center px-4 py-2 text-gray-400 hover:text-white">
+          <ShoppingCartIcon className="w-5 h-5 flex-shrink-0" />
+          <span className="ml-2 opacity-0 hover:opacity-100 transition-all duration-300 whitespace-nowrap">Orders</span>
+        </Link>
         <Link href="/product" className="flex items-center px-4 py-2 text-gray-400 hover:text-white">
           <Squares2X2Icon className="w-5 h-5 flex-shrink-0" />
           <span className="ml-2 opacity-0 hover:opacity-100 transition-all duration-300 whitespace-nowrap">

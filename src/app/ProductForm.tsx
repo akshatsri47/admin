@@ -21,6 +21,7 @@ interface ProductFormData {
   imageUrls: string[];
   discount: number;
   codAvailable: boolean;
+  paymentEligibility: "FULL_COD_ALLOWED" | "PARTIAL_COD_ONLY" | "PREPAID_ONLY" | "FULL_COD_AND_PREPAID" | "PARTIAL_COD_AND_PREPAID";
 }
 
 interface CloudinaryCredentials {
@@ -48,6 +49,7 @@ export default function ProductForm() {
     imageUrls: [],
     discount: 0,
     codAvailable: true,
+    paymentEligibility: "PARTIAL_COD_AND_PREPAID",
   });
 
   const [cloudinaryCredentials, setCloudinaryCredentials] = useState<CloudinaryCredentials | null>(null);
@@ -605,25 +607,19 @@ export default function ProductForm() {
             </div>
           </div>
 
-          {/* COD Availability */}
-          <div className="flex items-start gap-3 border-t pt-4 mt-2">
-            <input
-              id="codAvailable"
-              name="codAvailable"
-              type="checkbox"
-              checked={formData.codAvailable}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setFormData({ ...formData, codAvailable: e.target.checked })
-              }
-              className="mt-1 h-4 w-4 accent-green-600 cursor-pointer"
-            />
-            <label htmlFor="codAvailable" className="text-sm text-gray-700 cursor-pointer">
-              <span className="font-semibold">Allow Cash on Delivery (COD)</span>
-              <span className="block text-xs text-gray-400 mt-0.5">
-                If unchecked, customers can only buy this product via online payment.
-                COD orders: customer pays 15% online upfront, remaining 85% on delivery.
-              </span>
-            </label>
+          <div className="border-t pt-4 mt-2">
+            <label htmlFor="paymentEligibility" className="block text-sm font-semibold text-gray-700">Payment eligibility</label>
+            <select id="paymentEligibility" value={formData.paymentEligibility} onChange={(e) => {
+              const paymentEligibility = e.target.value as ProductFormData["paymentEligibility"];
+              setFormData({ ...formData, paymentEligibility, codAvailable: paymentEligibility !== "PREPAID_ONLY" });
+            }} className="mt-2 w-full border rounded px-3 py-2">
+              <option value="FULL_COD_ALLOWED">Full COD Allowed</option>
+              <option value="PARTIAL_COD_ONLY">Partial COD Only — 15% Advance</option>
+              <option value="PREPAID_ONLY">Prepaid Only — Full Online Payment</option>
+              <option value="FULL_COD_AND_PREPAID">Full COD and Prepaid Allowed</option>
+              <option value="PARTIAL_COD_AND_PREPAID">Partial COD and Prepaid Allowed</option>
+            </select>
+            <p className="text-xs text-gray-400 mt-1">The most restrictive product setting applies to the complete customer cart.</p>
           </div>
         </section>
 

@@ -101,6 +101,7 @@ export default function ProductsTable() {
 
       // Append COD availability (default true when not set)
       formData.append("codAvailable", String(editingProduct.codAvailable ?? true));
+      formData.append("paymentEligibility", editingProduct.paymentEligibility ?? (editingProduct.codAvailable === false ? "PREPAID_ONLY" : "PARTIAL_COD_AND_PREPAID"));
       
       // Append arrays
       if (editingProduct.commonlyUsedFor && editingProduct.commonlyUsedFor.length) {

@@ -21,6 +21,7 @@ export interface Product {
   benefits: string[];  
   discount?:number
   codAvailable?:boolean   // false = online payment only (COD disabled). Missing = COD allowed.
+  paymentEligibility?: "FULL_COD_ALLOWED" | "PARTIAL_COD_ONLY" | "PREPAID_ONLY" | "FULL_COD_AND_PREPAID" | "PARTIAL_COD_AND_PREPAID";
   imageUrls?:string[]
       // List of product benefits
 }
@@ -56,6 +57,10 @@ export interface Pricing{
     totalAmount: number;// Total price of the order
     status: "pending" | "processing" | "shipped" | "delivered"; // Order status
     createdAt: string;  // Timestamp of order creation
+    paymentMethod?: "ONLINE" | "COD" | "FULL_COD";
+    codAdvanceAmount?: number;
+    codDueAmount?: number;
+    paymentRestriction?: "FULL_COD_ALLOWED" | "PARTIAL_COD_ONLY" | "PREPAID_ONLY" | "FULL_COD_AND_PREPAID" | "PARTIAL_COD_AND_PREPAID";
   }
   
   

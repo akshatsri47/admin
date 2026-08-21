@@ -379,6 +379,12 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
               </span>
             </label>
           </div>
+          <div className="mt-3">
+            <label className="block text-sm font-semibold text-green-900">Payment eligibility</label>
+            <select value={product.paymentEligibility ?? (product.codAvailable === false ? "PREPAID_ONLY" : "PARTIAL_COD_AND_PREPAID")} onChange={(e) => setProduct({ ...product, paymentEligibility: e.target.value as Product["paymentEligibility"], codAvailable: e.target.value !== "PREPAID_ONLY" })} className="mt-1 w-full border rounded px-3 py-2">
+              <option value="FULL_COD_ALLOWED">Full COD Allowed</option><option value="PARTIAL_COD_ONLY">Partial COD Only — 15% Advance</option><option value="PREPAID_ONLY">Prepaid Only — Full Online Payment</option><option value="FULL_COD_AND_PREPAID">Full COD and Prepaid Allowed</option><option value="PARTIAL_COD_AND_PREPAID">Partial COD and Prepaid Allowed</option>
+            </select>
+          </div>
 
           {/* Images Section */}
           <h3 className="text-sm font-semibold">Upload Images</h3>

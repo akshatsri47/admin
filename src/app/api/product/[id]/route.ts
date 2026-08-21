@@ -125,6 +125,9 @@ export async function PUT(
     const codAvailable = codAvailableRaw !== null
       ? codAvailableRaw === "true"
       : (existingProduct.codAvailable ?? true);
+    const paymentEligibilityRaw = formData.get("paymentEligibility");
+    const validPaymentEligibility = ["FULL_COD_ALLOWED", "PARTIAL_COD_ONLY", "PREPAID_ONLY", "FULL_COD_AND_PREPAID", "PARTIAL_COD_AND_PREPAID"];
+    const paymentEligibility = validPaymentEligibility.includes(String(paymentEligibilityRaw)) ? paymentEligibilityRaw : (existingProduct.paymentEligibility ?? (codAvailable ? "PARTIAL_COD_AND_PREPAID" : "PREPAID_ONLY"));
 
     // Get image URLs - exactly as done in POST API
     const imageUrls: string[] = [];
@@ -217,6 +220,7 @@ export async function PUT(
       benefits,
       discount,
       codAvailable,
+      paymentEligibility,
     };
 
     // Update in Firestore
@@ -267,6 +271,10 @@ export async function PATCH(req: NextRequest) {
 
     if (typeof body.codAvailable === "boolean") {
       updates.codAvailable = body.codAvailable;
+    }
+    if (["FULL_COD_ALLOWED", "PARTIAL_COD_ONLY", "PREPAID_ONLY", "FULL_COD_AND_PREPAID", "PARTIAL_COD_AND_PREPAID"].includes(body.paymentEligibility)) {
+      updates.paymentEligibility = body.paymentEligibility;
+      updates.codAvailable = body.paymentEligibility !== "PREPAID_ONLY";
     }
 
     if (

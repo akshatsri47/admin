@@ -40,6 +40,9 @@ export async function POST(req: NextRequest) {
     // Extract COD availability (optional, defaults to true = COD allowed)
     const codAvailableRaw = formData.get("codAvailable");
     const codAvailable = codAvailableRaw === null ? true : codAvailableRaw === "true";
+    const paymentEligibilityRaw = formData.get("paymentEligibility");
+    const validPaymentEligibility = ["FULL_COD_ALLOWED", "PARTIAL_COD_ONLY", "PREPAID_ONLY", "FULL_COD_AND_PREPAID", "PARTIAL_COD_AND_PREPAID"];
+    const paymentEligibility = validPaymentEligibility.includes(String(paymentEligibilityRaw)) ? paymentEligibilityRaw : (codAvailable ? "PARTIAL_COD_AND_PREPAID" : "PREPAID_ONLY");
 
     // Get image URLs that were uploaded to Cloudinary
     const imageUrls: string[] = [];
@@ -104,6 +107,7 @@ export async function POST(req: NextRequest) {
       keywords,
       discount,
       codAvailable,
+      paymentEligibility,
     };
 
     // Adding to Firestore
