@@ -7,6 +7,8 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import { getBlogById } from '../../../../lib/blogFirestore';
 import { BlogData } from '../../../../types/blog';
 import { convertToDate } from '../../../../types/firebase';
+import BlogFeaturedImageUpload from '../../../../components/BlogFeaturedImageUpload';
+import { BlogFormData } from '../../../../types/blog';
 
 // Helper function to format date for input field
 const formatDateForInput = (dateValue: unknown): string => {
@@ -31,6 +33,8 @@ export default function EditBlogPage() {
   const [blog, setBlog] = useState<BlogData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [featuredImage, setFeaturedImage] = useState<BlogFormData['featuredImage']>();
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -64,6 +68,7 @@ export default function EditBlogPage() {
       }
 
       setBlog(blogData);
+      setFeaturedImage(blogData.featuredImage);
       
       // Populate form with existing data
       setFormData({
@@ -99,6 +104,7 @@ export default function EditBlogPage() {
         title: formData.title,
         content: formData.content,
         excerpt: formData.excerpt,
+        featuredImage,
         categories: formData.categories.split(',').map(cat => cat.trim()).filter(Boolean),
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
         status: formData.status,
@@ -209,6 +215,12 @@ export default function EditBlogPage() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-8">
           <div className="space-y-6">
+            <BlogFeaturedImageUpload
+              value={featuredImage}
+              onChange={setFeaturedImage}
+              onUploadingChange={setUploadingImage}
+            />
+
             {/* Title */}
             <div>
               <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
@@ -389,13 +401,13 @@ export default function EditBlogPage() {
               </Link>
               <button
                 type="submit"
-                disabled={saving}
+                disabled={saving || uploadingImage}
                 className="px-6 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {saving ? (
+                {saving || uploadingImage ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Updating...
+                    {uploadingImage ? 'Uploading image...' : 'Updating...'}
                   </div>
                 ) : (
                   'Update Blog Post'

@@ -4,10 +4,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import BlogFeaturedImageUpload from '../../../components/BlogFeaturedImageUpload';
+import { BlogFormData } from '../../../types/blog';
 
 export default function CreateBlogPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [featuredImage, setFeaturedImage] = useState<BlogFormData['featuredImage']>();
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -33,6 +37,7 @@ export default function CreateBlogPage() {
         title: formData.title,
         content: formData.content,
         excerpt: formData.excerpt,
+        featuredImage,
         categories: formData.categories.split(',').map(cat => cat.trim()).filter(Boolean),
         tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
         status: formData.status,
@@ -113,6 +118,12 @@ export default function CreateBlogPage() {
         {/* Form */}
         <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-8">
           <div className="space-y-6">
+            <BlogFeaturedImageUpload
+              value={featuredImage}
+              onChange={setFeaturedImage}
+              onUploadingChange={setUploadingImage}
+            />
+
             {/* Title */}
             <div>
               <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
@@ -293,13 +304,13 @@ export default function CreateBlogPage() {
               </Link>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || uploadingImage}
                 className="px-6 py-2 bg-emerald-600 text-white rounded-md hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? (
+                {loading || uploadingImage ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Creating...
+                    {uploadingImage ? 'Uploading image...' : 'Creating...'}
                   </div>
                 ) : (
                   'Create Blog Post'
