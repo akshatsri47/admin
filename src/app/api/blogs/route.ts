@@ -33,6 +33,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (status === 'published' && !featuredImage) {
+      return NextResponse.json(
+        { success: false, error: 'A featured image is required before publishing a blog.' },
+        { status: 400 }
+      );
+    }
+
     // Create blog data from form data
     const blogData = formDataToBlogData(
       {

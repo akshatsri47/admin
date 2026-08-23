@@ -99,6 +99,10 @@ export default function EditBlogPage() {
     setSaving(true);
 
     try {
+      if (formData.status === 'published' && !featuredImage) {
+        throw new Error('Upload a featured image before publishing this blog.');
+      }
+
       // Prepare the blog data
       const blogData = {
         title: formData.title,

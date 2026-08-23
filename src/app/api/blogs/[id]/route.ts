@@ -87,13 +87,21 @@ export async function PUT(req: NextRequest) {
       );
     }
 
+    const effectiveFeaturedImage = featuredImage || existingBlog.featuredImage;
+    if ((status || existingBlog.status) === 'published' && !effectiveFeaturedImage) {
+      return NextResponse.json(
+        { success: false, error: 'A featured image is required before publishing a blog.' },
+        { status: 400 }
+      );
+    }
+
     // Create updated blog data from form data
     const updatedBlogData = formDataToBlogData(
       {
         title,
         content,
         excerpt: excerpt || "",
-        featuredImage,
+        featuredImage: effectiveFeaturedImage,
         categories,
         tags: tags || [],
         status: status || existingBlog.status,

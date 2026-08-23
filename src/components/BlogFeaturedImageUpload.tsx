@@ -62,7 +62,7 @@ export default function BlogFeaturedImageUpload({
         <div>
           <h2 className="font-semibold text-gray-900">Blog Card / Featured Image</h2>
           <p className="text-sm text-gray-600">
-            This image appears above the heading on the blog listing and article page.
+            This image appears above the heading on the blog listing and article page. It is required before publishing.
           </p>
         </div>
       </div>
