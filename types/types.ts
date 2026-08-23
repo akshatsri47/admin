@@ -60,6 +60,9 @@ export interface Pricing{
     paymentMethod?: "ONLINE" | "COD" | "FULL_COD";
     codAdvanceAmount?: number;
     codDueAmount?: number;
+    totalBeforePaymentDiscount?: number;
+    onlinePaymentDiscountPercent?: number;
+    onlinePaymentDiscountAmount?: number;
     paymentRestriction?: "FULL_COD_ALLOWED" | "PARTIAL_COD_ONLY" | "PREPAID_ONLY" | "FULL_COD_AND_PREPAID" | "PARTIAL_COD_AND_PREPAID";
   }
   
