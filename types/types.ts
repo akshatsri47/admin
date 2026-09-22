@@ -13,6 +13,12 @@ export interface Product {
   avoidForCrops: string[]; 
   search?:string;
   keywords?:string[];  // Crops to avoid usage (e.g., ['wheat', 'hybrid seed'])
+  stickerImage?: string;
+  stickerLabel?: string;
+  trustedFarmers?: string;
+  rating?: number;
+  verifiedReviewsCount?: number;
+  reviews?: ProductReview[];
   dosage?: {
     method: string;           // Dosage method (e.g., 'Mix with water and rub on seeds')
     dosage:{dose:string,acre:string}
@@ -24,6 +30,13 @@ export interface Product {
   paymentEligibility?: "FULL_COD_ALLOWED" | "PARTIAL_COD_ONLY" | "PREPAID_ONLY" | "FULL_COD_AND_PREPAID" | "PARTIAL_COD_AND_PREPAID";
   imageUrls?:string[]
       // List of product benefits
+}
+
+export interface ProductReview {
+  name: string;
+  rating: number;
+  comment: string;
+  date?: string;
 }
 
 export interface Pricing{

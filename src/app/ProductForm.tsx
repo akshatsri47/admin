@@ -22,6 +22,19 @@ interface ProductFormData {
   discount: number;
   codAvailable: boolean;
   paymentEligibility: "FULL_COD_ALLOWED" | "PARTIAL_COD_ONLY" | "PREPAID_ONLY" | "FULL_COD_AND_PREPAID" | "PARTIAL_COD_AND_PREPAID";
+  stickerImage: string;
+  stickerLabel: string;
+  trustedFarmers: string;
+  rating: number;
+  verifiedReviewsCount: number;
+  reviews: ProductReview[];
+}
+
+interface ProductReview {
+  name: string;
+  rating: number;
+  comment: string;
+  date: string;
 }
 
 interface CloudinaryCredentials {
@@ -50,11 +63,24 @@ export default function ProductForm() {
     discount: 0,
     codAvailable: true,
     paymentEligibility: "PARTIAL_COD_AND_PREPAID",
+    stickerImage: "",
+    stickerLabel: "TOP SELLER",
+    trustedFarmers: "638+",
+    rating: 4.6,
+    verifiedReviewsCount: 148,
+    reviews: [],
   });
 
   const [cloudinaryCredentials, setCloudinaryCredentials] = useState<CloudinaryCredentials | null>(null);
   const [uploadingImages, setUploadingImages] = useState<boolean>(false);
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [selectedStickerImage, setSelectedStickerImage] = useState<File | null>(null);
+  const [review, setReview] = useState<ProductReview>({
+    name: "",
+    rating: 5,
+    comment: "",
+    date: "",
+  });
 
   // Discount helper state — two price fields that compute formData.discount
   const [discountPrices, setDiscountPrices] = useState<{ originalPrice: string; discountedPrice: string }>({
@@ -153,21 +179,25 @@ export default function ProductForm() {
     }
   };
 
+  const handleStickerImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setSelectedStickerImage(e.target.files?.[0] || null);
+  };
+
   // New function to upload images to Cloudinary
-  const uploadImagesToCloudinary = async () => {
-    if (!cloudinaryCredentials || selectedImages.length === 0) return [];
+  const uploadImagesToCloudinary = async (images = selectedImages, folder = "products") => {
+    if (!cloudinaryCredentials || images.length === 0) return [];
 
     setUploadingImages(true);
     const uploadedUrls: string[] = [];
 
     try {
-      const uploadPromises = selectedImages.map(async (image) => {
+      const uploadPromises = images.map(async (image) => {
         const formData = new FormData();
         formData.append('file', image);
         formData.append('api_key', cloudinaryCredentials.apiKey);
         formData.append('timestamp', cloudinaryCredentials.timestamp.toString());
         formData.append('signature', cloudinaryCredentials.signature);
-        formData.append('folder', 'products');
+        formData.append('folder', folder);
 
         const response = await axios.post(
           `https://api.cloudinary.com/v1_1/${cloudinaryCredentials.cloudName}/image/upload`,
@@ -197,6 +227,12 @@ export default function ProductForm() {
     setDose({ ...dose, [e.target.name]: e.target.value });
   };
 
+  const handleReviewChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    setReview({ ...review, [e.target.name]: e.target.value });
+  };
+
   const addPricing = () => {
     setFormData({ ...formData, pricing: [...formData.pricing, pricing] });
     setPricing({ packageSize: "", price: 0 });
@@ -205,6 +241,31 @@ export default function ProductForm() {
   const addDose = () => {
     setFormData({ ...formData, dosage: [...formData.dosage, dose] });
     setDose({ dose: "", arce: "" });
+  };
+
+  const addReview = () => {
+    if (!review.name || !review.comment) return;
+    setFormData({
+      ...formData,
+      reviews: [...formData.reviews, { ...review, rating: Number(review.rating) }],
+    });
+    setReview({ name: "", rating: 5, comment: "", date: "" });
+  };
+
+  const updateReview = (index: number, field: keyof ProductReview, value: string) => {
+    const nextReviews = [...formData.reviews];
+    nextReviews[index] = {
+      ...nextReviews[index],
+      [field]: field === "rating" ? Number(value) : value,
+    };
+    setFormData({ ...formData, reviews: nextReviews });
+  };
+
+  const removeReview = (index: number) => {
+    setFormData({
+      ...formData,
+      reviews: formData.reviews.filter((_, reviewIndex) => reviewIndex !== index),
+    });
   };
 
   // Updated submit handler to use Cloudinary
@@ -217,6 +278,9 @@ export default function ProductForm() {
     try {
       // First upload images to Cloudinary
       const imageUrls = await uploadImagesToCloudinary();
+      const stickerImageUrls = selectedStickerImage
+        ? await uploadImagesToCloudinary([selectedStickerImage], "products/stickers")
+        : [];
       
       if (imageUrls.length === 0 && selectedImages.length > 0) {
         throw new Error("Failed to upload images");
@@ -229,6 +293,8 @@ export default function ProductForm() {
         if (key === 'images') {
           // Skip the original images array as we've uploaded to Cloudinary
           return;
+        } else if (key === "stickerImage") {
+          data.append(key, stickerImageUrls[0] || formData.stickerImage);
         } else if (Array.isArray(value) || typeof value === "object") {
           data.append(key, JSON.stringify(value));
         } else {
@@ -459,6 +525,178 @@ export default function ProductForm() {
           <p className="text-xs text-gray-500">
             Images will be uploaded directly to Cloudinary when you submit the form
           </p>
+        </section>
+
+        <section className="bg-white rounded-md shadow p-5 flex flex-col gap-4">
+          <h2 className="font-semibold text-gray-700 mb-2">Product Trust Details</h2>
+
+          <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Top Seller Sticker Text</label>
+            <input
+              name="stickerLabel"
+              type="text"
+              placeholder="TOP SELLER"
+              className="border border-gray-300 rounded px-3 py-2 text-sm"
+              value={formData.stickerLabel}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Top Seller Sticker Image</label>
+            <input
+              type="file"
+              accept="image/*"
+              className="border border-gray-300 rounded px-3 py-2 text-sm
+                         file:mr-3 file:py-1 file:px-2 file:border file:border-gray-300
+                         file:text-sm file:font-semibold file:bg-gray-50
+                         hover:file:bg-gray-100"
+              onChange={handleStickerImageChange}
+            />
+            {selectedStickerImage && (
+              <div className="mt-2 h-16 w-40 overflow-hidden rounded border bg-gray-50">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={URL.createObjectURL(selectedStickerImage)}
+                  alt="Sticker Preview"
+                  className="h-full w-full object-contain"
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="flex flex-col">
+              <label className="text-sm text-gray-600 mb-1">Trusted Farmers Count</label>
+              <input
+                name="trustedFarmers"
+                type="text"
+                placeholder="638+"
+                className="border border-gray-300 rounded px-3 py-2 text-sm"
+                value={formData.trustedFarmers}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm text-gray-600 mb-1">Rating</label>
+              <input
+                name="rating"
+                type="number"
+                min="1"
+                max="5"
+                step="0.1"
+                className="border border-gray-300 rounded px-3 py-2 text-sm"
+                value={formData.rating}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-sm text-gray-600 mb-1">Verified Reviews Count</label>
+              <input
+                name="verifiedReviewsCount"
+                type="number"
+                min="0"
+                className="border border-gray-300 rounded px-3 py-2 text-sm"
+                value={formData.verifiedReviewsCount}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="border-t pt-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-3">Reviews</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <input
+                name="name"
+                type="text"
+                placeholder="Reviewer Name"
+                className="border border-gray-300 rounded px-3 py-2 text-sm"
+                value={review.name}
+                onChange={handleReviewChange}
+              />
+              <input
+                name="rating"
+                type="number"
+                min="1"
+                max="5"
+                step="0.1"
+                placeholder="Rating"
+                className="border border-gray-300 rounded px-3 py-2 text-sm"
+                value={review.rating}
+                onChange={handleReviewChange}
+              />
+              <input
+                name="date"
+                type="text"
+                placeholder="Date"
+                className="border border-gray-300 rounded px-3 py-2 text-sm"
+                value={review.date}
+                onChange={handleReviewChange}
+              />
+              <button
+                type="button"
+                onClick={addReview}
+                className="bg-gray-100 border border-gray-300 rounded px-3 py-2 text-sm hover:bg-gray-200"
+              >
+                Add Review
+              </button>
+              <textarea
+                name="comment"
+                placeholder="Review"
+                className="sm:col-span-2 border border-gray-300 rounded px-3 py-2 text-sm h-20 resize-none"
+                value={review.comment}
+                onChange={handleReviewChange}
+              />
+            </div>
+
+            {formData.reviews.length > 0 && (
+              <div className="mt-4 space-y-3">
+                {formData.reviews.map((item, index) => (
+                  <div key={index} className="rounded border border-gray-200 p-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <input
+                        type="text"
+                        value={item.name}
+                        onChange={(e) => updateReview(index, "name", e.target.value)}
+                        className="border border-gray-300 rounded px-3 py-2 text-sm"
+                        placeholder="Name"
+                      />
+                      <input
+                        type="number"
+                        min="1"
+                        max="5"
+                        step="0.1"
+                        value={item.rating}
+                        onChange={(e) => updateReview(index, "rating", e.target.value)}
+                        className="border border-gray-300 rounded px-3 py-2 text-sm"
+                        placeholder="Rating"
+                      />
+                      <input
+                        type="text"
+                        value={item.date}
+                        onChange={(e) => updateReview(index, "date", e.target.value)}
+                        className="border border-gray-300 rounded px-3 py-2 text-sm"
+                        placeholder="Date"
+                      />
+                      <textarea
+                        value={item.comment}
+                        onChange={(e) => updateReview(index, "comment", e.target.value)}
+                        className="sm:col-span-3 border border-gray-300 rounded px-3 py-2 text-sm h-16 resize-none"
+                        placeholder="Review"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeReview(index)}
+                      className="mt-2 text-sm text-red-600 hover:text-red-800"
+                    >
+                      Remove Review
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </section>
 
         {/* BOTTOM LEFT: PRICING & STOCK (reusing your pricing + dose) - unchanged */}

@@ -7,9 +7,16 @@ import Image from "next/image";
 interface EditProductModalProps {
   product: Product;
   setProduct: React.Dispatch<React.SetStateAction<Product | null>>;
-  onUpdate: (e: React.FormEvent, selectedImages: File[]) => void;
+  onUpdate: (e: React.FormEvent, selectedImages: File[], selectedStickerImage: File | null) => void;
   onClose: () => void;
   isUploading?: boolean; // Add this prop to the interface
+}
+
+interface ProductReview {
+  name: string;
+  rating: number;
+  comment: string;
+  date?: string;
 }
 
 const EditProductModal: React.FC<EditProductModalProps> = ({ 
@@ -20,6 +27,13 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
   isUploading = false // Provide a default value
 }) => {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [selectedStickerImage, setSelectedStickerImage] = useState<File | null>(null);
+  const [review, setReview] = useState<ProductReview>({
+    name: "",
+    rating: 5,
+    comment: "",
+    date: "",
+  });
   const [uploadProgress, setUploadProgress] = useState(0);
   const [existingCategories, setExistingCategories] = useState<string[]>([]);
   const [isAddingCategory, setIsAddingCategory] = useState<boolean>(false);
@@ -53,6 +67,42 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
       // console.log(uploadedImageUrls)
       setSelectedImages(files); // Store files in state
     }
+  };
+
+  const handleStickerImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedStickerImage(e.target.files?.[0] || null);
+  };
+
+  const addReview = () => {
+    if (!review.name || !review.comment) return;
+    setProduct({
+      ...product,
+      reviews: [...(product.reviews || []), { ...review, rating: Number(review.rating) }],
+    });
+    setReview({ name: "", rating: 5, comment: "", date: "" });
+  };
+
+  const updateReview = (index: number, field: keyof ProductReview, value: string) => {
+    const nextReviews = [...(product.reviews || [])];
+    nextReviews[index] = {
+      ...nextReviews[index],
+      [field]: field === "rating" ? Number(value) : value,
+    };
+    setProduct({ ...product, reviews: nextReviews });
+  };
+
+  const removeReview = (index: number) => {
+    setProduct({
+      ...product,
+      reviews: (product.reviews || []).filter((_, reviewIndex) => reviewIndex !== index),
+    });
+  };
+
+  const removeExistingImage = (index: number) => {
+    setProduct({
+      ...product,
+      images: (product.images || []).filter((_, imageIndex) => imageIndex !== index),
+    });
   };
 
   // Upload images to Cloudinary before form submission
@@ -114,7 +164,7 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white p-6 rounded shadow-lg w-full max-w-md max-h-[80vh] overflow-y-auto">
         <h2 className="text-lg font-semibold mb-4">Edit Product</h2>
-        <form onSubmit={(e) => onUpdate(e, selectedImages)} className="space-y-3">
+        <form onSubmit={(e) => onUpdate(e, selectedImages, selectedStickerImage)} className="space-y-3">
           <input
             type="text"
             value={product.name}
@@ -386,6 +436,169 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
             </select>
           </div>
 
+          <div className="flex flex-col gap-3 border border-green-200 bg-green-50 rounded-lg p-3 mt-2">
+            <h3 className="text-sm font-semibold text-green-900">Trust Badge, Sticker & Reviews</h3>
+            <input
+              type="text"
+              value={product.stickerLabel || ""}
+              onChange={(e) => setProduct({ ...product, stickerLabel: e.target.value })}
+              className="w-full border p-2 rounded"
+              placeholder="Top Seller Sticker Text"
+            />
+            <input
+              type="text"
+              value={product.trustedFarmers || ""}
+              onChange={(e) => setProduct({ ...product, trustedFarmers: e.target.value })}
+              className="w-full border p-2 rounded"
+              placeholder="Trusted Farmers Count (e.g. 638+)"
+            />
+            <div className="flex gap-2">
+              <input
+                type="number"
+                min="1"
+                max="5"
+                step="0.1"
+                value={product.rating ?? 4.6}
+                onChange={(e) => setProduct({ ...product, rating: Number(e.target.value) })}
+                className="w-1/2 border p-2 rounded"
+                placeholder="Rating"
+              />
+              <input
+                type="number"
+                min="0"
+                value={product.verifiedReviewsCount ?? 148}
+                onChange={(e) => setProduct({ ...product, verifiedReviewsCount: Number(e.target.value) })}
+                className="w-1/2 border p-2 rounded"
+                placeholder="Verified Reviews Count"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Sticker Image</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleStickerImageUpload}
+                className="w-full border p-2 rounded"
+                disabled={isUploading}
+              />
+              {(selectedStickerImage || product.stickerImage) && (
+                <div className="mt-2 flex items-center gap-3">
+                  <div className="relative h-14 w-36 overflow-hidden rounded border bg-white">
+                    <Image
+                      src={selectedStickerImage ? URL.createObjectURL(selectedStickerImage) : product.stickerImage || ""}
+                      alt="Sticker Preview"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedStickerImage(null);
+                      setProduct({ ...product, stickerImage: "" });
+                    }}
+                    className="text-sm text-red-600 hover:text-red-800"
+                  >
+                    Remove Sticker
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-green-200 pt-3">
+              <p className="text-sm font-semibold text-green-900 mb-2">Reviews</p>
+              <div className="grid grid-cols-1 gap-2">
+                <input
+                  type="text"
+                  value={review.name}
+                  onChange={(e) => setReview({ ...review, name: e.target.value })}
+                  className="w-full border p-2 rounded"
+                  placeholder="Reviewer Name"
+                />
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="5"
+                    step="0.1"
+                    value={review.rating}
+                    onChange={(e) => setReview({ ...review, rating: Number(e.target.value) })}
+                    className="w-1/2 border p-2 rounded"
+                    placeholder="Rating"
+                  />
+                  <input
+                    type="text"
+                    value={review.date}
+                    onChange={(e) => setReview({ ...review, date: e.target.value })}
+                    className="w-1/2 border p-2 rounded"
+                    placeholder="Date"
+                  />
+                </div>
+                <textarea
+                  value={review.comment}
+                  onChange={(e) => setReview({ ...review, comment: e.target.value })}
+                  className="w-full border p-2 rounded"
+                  placeholder="Review"
+                />
+                <button
+                  type="button"
+                  onClick={addReview}
+                  className="text-sm text-blue-600 hover:text-blue-800 text-left"
+                >
+                  + Add Review
+                </button>
+              </div>
+
+              {(product.reviews || []).length > 0 && (
+                <div className="mt-3 space-y-3">
+                  {(product.reviews || []).map((item, index) => (
+                    <div key={index} className="rounded border bg-white p-2">
+                      <input
+                        type="text"
+                        value={item.name}
+                        onChange={(e) => updateReview(index, "name", e.target.value)}
+                        className="mb-2 w-full border p-2 rounded"
+                        placeholder="Name"
+                      />
+                      <div className="mb-2 flex gap-2">
+                        <input
+                          type="number"
+                          min="1"
+                          max="5"
+                          step="0.1"
+                          value={item.rating}
+                          onChange={(e) => updateReview(index, "rating", e.target.value)}
+                          className="w-1/2 border p-2 rounded"
+                          placeholder="Rating"
+                        />
+                        <input
+                          type="text"
+                          value={item.date || ""}
+                          onChange={(e) => updateReview(index, "date", e.target.value)}
+                          className="w-1/2 border p-2 rounded"
+                          placeholder="Date"
+                        />
+                      </div>
+                      <textarea
+                        value={item.comment}
+                        onChange={(e) => updateReview(index, "comment", e.target.value)}
+                        className="w-full border p-2 rounded"
+                        placeholder="Review"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeReview(index)}
+                        className="mt-2 text-sm text-red-600 hover:text-red-800"
+                      >
+                        Remove Review
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Images Section */}
           <h3 className="text-sm font-semibold">Upload Images</h3>
           <input
@@ -429,6 +642,14 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
                       fill
                       className="object-cover rounded border"
                     />
+                    <button
+                      type="button"
+                      onClick={() => removeExistingImage(i)}
+                      className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs text-white shadow"
+                      aria-label="Remove product image"
+                    >
+                      x
+                    </button>
                   </div>
                 ))}
               </div>

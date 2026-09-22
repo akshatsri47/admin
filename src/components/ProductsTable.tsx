@@ -71,7 +71,11 @@ export default function ProductsTable() {
   };
 
   // First upload images to Cloudinary, then update the product with image URLs
-  const handleUpdateProduct = async (e: React.FormEvent, selectedImages: File[]) => {
+  const handleUpdateProduct = async (
+    e: React.FormEvent,
+    selectedImages: File[],
+    selectedStickerImage: File | null
+  ) => {
     e.preventDefault();
     if (!editingProduct) return;
     
@@ -80,6 +84,9 @@ export default function ProductsTable() {
     try {
       // Step 1: Upload images to Cloudinary and get their URLs
        const newImageUrls = await uploadImagesToCloudinary(selectedImages);
+      const newStickerImageUrls = selectedStickerImage
+        ? await uploadImagesToCloudinary([selectedStickerImage], "products/stickers")
+        : [];
       
       // Step 2: Create FormData with product details and new image URLs
       const formData = new FormData();
@@ -102,6 +109,12 @@ export default function ProductsTable() {
       // Append COD availability (default true when not set)
       formData.append("codAvailable", String(editingProduct.codAvailable ?? true));
       formData.append("paymentEligibility", editingProduct.paymentEligibility ?? (editingProduct.codAvailable === false ? "PREPAID_ONLY" : "PARTIAL_COD_AND_PREPAID"));
+      formData.append("stickerImage", newStickerImageUrls[0] || editingProduct.stickerImage || "");
+      formData.append("stickerLabel", editingProduct.stickerLabel || "TOP SELLER");
+      formData.append("trustedFarmers", editingProduct.trustedFarmers || "638+");
+      formData.append("rating", String(editingProduct.rating ?? 4.6));
+      formData.append("verifiedReviewsCount", String(editingProduct.verifiedReviewsCount ?? 148));
+      formData.append("reviews", JSON.stringify(editingProduct.reviews || []));
       
       // Append arrays
       if (editingProduct.commonlyUsedFor && editingProduct.commonlyUsedFor.length) {
@@ -147,7 +160,7 @@ export default function ProductsTable() {
   };
   
   // Fixed function to upload images to Cloudinary
-  const uploadImagesToCloudinary = async (images: File[]): Promise<string[]> => {
+  const uploadImagesToCloudinary = async (images: File[], folder = "products"): Promise<string[]> => {
     if (!images.length || !cloudinaryCredentials) return [];
     
     try {
@@ -159,7 +172,7 @@ export default function ProductsTable() {
         formData.append("api_key", cloudinaryCredentials.apiKey);
         formData.append("timestamp", cloudinaryCredentials.timestamp.toString());
         formData.append("signature", cloudinaryCredentials.signature);
-        formData.append("folder", "products"); // Adjust folder name as needed
+        formData.append("folder", folder);
         
         const response = await axios.post(
           `https://api.cloudinary.com/v1_1/${cloudinaryCredentials.cloudName}/image/upload`,

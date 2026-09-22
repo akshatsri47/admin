@@ -100,6 +100,17 @@ export async function PUT(
     const commonlyUsedFor = formData.getAll("commonlyUsedFor") as string[];
     const avoidForCrops = formData.getAll("avoidForCrops") as string[];
     const benefits = formData.getAll("benefits") as string[];
+    const stickerImage = (formData.get("stickerImage") as string) || "";
+    const stickerLabel = (formData.get("stickerLabel") as string) || "TOP SELLER";
+    const trustedFarmers = (formData.get("trustedFarmers") as string) || "638+";
+    const rating = Number(formData.get("rating") || 4.6);
+    const verifiedReviewsCount = Number(formData.get("verifiedReviewsCount") || 148);
+    const reviews = JSON.parse((formData.get("reviews") as string) || "[]") as {
+      name: string;
+      rating: number;
+      comment: string;
+      date?: string;
+    }[];
 
     // Extracting dosage details
     const method = formData.get("method") as string;
@@ -161,8 +172,7 @@ export async function PUT(
       !composition ||
       !method ||
       !dosage ||
-      !pricing.length ||
-      !imageUrls.length
+      !pricing.length
     ) {
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
@@ -212,6 +222,12 @@ export async function PUT(
       composition,
       commonlyUsedFor,
       avoidForCrops,
+      stickerImage,
+      stickerLabel,
+      trustedFarmers,
+      rating,
+      verifiedReviewsCount,
+      reviews,
       pricing,
       dosage: {
         method,
