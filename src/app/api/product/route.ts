@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { collection, addDoc, getDocs, DocumentData } from "firebase/firestore";
 import { db } from "../../../../utils/firebase";
 import { generateKeywords } from "../../../../utils/function"
+import cloudinary from "../../../../utils/cloudinary";
 
  
 
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
     const commonlyUsedFor = formData.getAll("commonlyUsedFor") as string[];
     const avoidForCrops = formData.getAll("avoidForCrops") as string[];
     const benefits = formData.getAll("benefits") as string[];
-    const stickerImage = (formData.get("stickerImage") as string) || "";
+    const stickerImageField = formData.get("stickerImage");
     const stickerLabel = (formData.get("stickerLabel") as string) || "TOP SELLER";
     const trustedFarmers = (formData.get("trustedFarmers") as string) || "638+";
     const rating = Number(formData.get("rating") || 4.6);
@@ -58,6 +59,7 @@ export async function POST(req: NextRequest) {
     // Get image URLs that were uploaded to Cloudinary
     const imageUrls: string[] = [];
     const imageUrlsData = formData.getAll("imageUrls[]") as string[];
+    const imageFiles = formData.getAll("images") as File[];
     
     // If we get individual image URLs
     if (imageUrlsData.length > 0) {
@@ -75,6 +77,36 @@ export async function POST(req: NextRequest) {
           console.error("Error parsing image URLs:", e);
         }
       }
+    }
+
+    for (const image of imageFiles) {
+      if (!image || image.size === 0) continue;
+      const buffer = await image.arrayBuffer();
+      const base64Image = Buffer.from(buffer).toString("base64");
+      const uploadResponse = await cloudinary.uploader.upload(`data:${image.type};base64,${base64Image}`, {
+        folder: "products",
+        format: "jpg",
+        transformation: [
+          { quality: "auto" },
+          { fetch_format: "jpg" },
+        ],
+      });
+      imageUrls.push(uploadResponse.secure_url);
+    }
+
+    let stickerImage = typeof stickerImageField === "string" ? stickerImageField : "";
+    if (stickerImageField instanceof File && stickerImageField.size > 0) {
+      const buffer = await stickerImageField.arrayBuffer();
+      const base64Image = Buffer.from(buffer).toString("base64");
+      const uploadResponse = await cloudinary.uploader.upload(`data:${stickerImageField.type};base64,${base64Image}`, {
+        folder: "products",
+        format: "jpg",
+        transformation: [
+          { quality: "auto" },
+          { fetch_format: "jpg" },
+        ],
+      });
+      stickerImage = uploadResponse.secure_url;
     }
 
     const missingFields = [
@@ -138,7 +170,10 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error("Error adding product:", error);
-    return NextResponse.json({ success: false, error: "Error adding product" }, { status: 500 });
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : "Error adding product",
+    }, { status: 500 });
   }
 }
 

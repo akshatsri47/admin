@@ -298,16 +298,6 @@ export default function ProductForm() {
         throw new Error(`Please fill: ${missingFields.join(", ")}`);
       }
 
-      // First upload images to Cloudinary
-      const imageUrls = await uploadImagesToCloudinary();
-      const stickerImageUrls = selectedStickerImage
-        ? await uploadImagesToCloudinary([selectedStickerImage])
-        : [];
-      
-      if (imageUrls.length === 0 && selectedImages.length > 0) {
-        throw new Error("Failed to upload images");
-      }
-
       const data = new FormData();
       const reviewsToSubmit = review.name && review.comment
         ? [...formData.reviews, { ...review, rating: Number(review.rating) }]
@@ -316,10 +306,14 @@ export default function ProductForm() {
       // Add all the existing fields as before
       Object.entries(formData).forEach(([key, value]) => {
         if (key === 'images') {
-          // Skip the original images array as we've uploaded to Cloudinary
+          selectedImages.forEach((image) => data.append("images", image));
           return;
         } else if (key === "stickerImage") {
-          data.append(key, stickerImageUrls[0] || formData.stickerImage);
+          if (selectedStickerImage) {
+            data.append(key, selectedStickerImage);
+          } else {
+            data.append(key, formData.stickerImage);
+          }
         } else if (key === "reviews") {
           data.append(key, JSON.stringify(reviewsToSubmit));
         } else if (key === "pricing") {
@@ -331,11 +325,6 @@ export default function ProductForm() {
         } else {
           data.append(key, value as string);
         }
-      });
-
-      // Add the image URLs from Cloudinary
-      imageUrls.forEach(url => {
-        data.append("imageUrls[]", url);
       });
 
       await axios.post("/api/product", data, {
