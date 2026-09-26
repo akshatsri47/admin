@@ -279,7 +279,7 @@ export default function ProductForm() {
       // First upload images to Cloudinary
       const imageUrls = await uploadImagesToCloudinary();
       const stickerImageUrls = selectedStickerImage
-        ? await uploadImagesToCloudinary([selectedStickerImage], "products/stickers")
+        ? await uploadImagesToCloudinary([selectedStickerImage])
         : [];
       
       if (imageUrls.length === 0 && selectedImages.length > 0) {

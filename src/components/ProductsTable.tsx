@@ -83,9 +83,9 @@ export default function ProductsTable() {
     
     try {
       // Step 1: Upload images to Cloudinary and get their URLs
-       const newImageUrls = await uploadImagesToCloudinary(selectedImages);
+      const newImageUrls = await uploadImagesToCloudinary(selectedImages);
       const newStickerImageUrls = selectedStickerImage
-        ? await uploadImagesToCloudinary([selectedStickerImage], "products/stickers")
+        ? await uploadImagesToCloudinary([selectedStickerImage])
         : [];
       
       // Step 2: Create FormData with product details and new image URLs
