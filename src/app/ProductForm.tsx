@@ -287,6 +287,9 @@ export default function ProductForm() {
       }
 
       const data = new FormData();
+      const reviewsToSubmit = review.name && review.comment
+        ? [...formData.reviews, { ...review, rating: Number(review.rating) }]
+        : formData.reviews;
       
       // Add all the existing fields as before
       Object.entries(formData).forEach(([key, value]) => {
@@ -295,6 +298,8 @@ export default function ProductForm() {
           return;
         } else if (key === "stickerImage") {
           data.append(key, stickerImageUrls[0] || formData.stickerImage);
+        } else if (key === "reviews") {
+          data.append(key, JSON.stringify(reviewsToSubmit));
         } else if (Array.isArray(value) || typeof value === "object") {
           data.append(key, JSON.stringify(value));
         } else {

@@ -7,7 +7,12 @@ import Image from "next/image";
 interface EditProductModalProps {
   product: Product;
   setProduct: React.Dispatch<React.SetStateAction<Product | null>>;
-  onUpdate: (e: React.FormEvent, selectedImages: File[], selectedStickerImage: File | null) => void;
+  onUpdate: (
+    e: React.FormEvent,
+    selectedImages: File[],
+    selectedStickerImage: File | null,
+    draftReview: ProductReview | null
+  ) => void;
   onClose: () => void;
   isUploading?: boolean; // Add this prop to the interface
 }
@@ -164,7 +169,19 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
       <div className="bg-white p-6 rounded shadow-lg w-full max-w-md max-h-[80vh] overflow-y-auto">
         <h2 className="text-lg font-semibold mb-4">Edit Product</h2>
-        <form onSubmit={(e) => onUpdate(e, selectedImages, selectedStickerImage)} className="space-y-3">
+        <form
+          onSubmit={(e) =>
+            onUpdate(
+              e,
+              selectedImages,
+              selectedStickerImage,
+              review.name && review.comment
+                ? { ...review, rating: Number(review.rating) }
+                : null
+            )
+          }
+          className="space-y-3"
+        >
           <input
             type="text"
             value={product.name}

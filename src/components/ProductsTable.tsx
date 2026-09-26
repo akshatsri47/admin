@@ -12,6 +12,13 @@ interface CloudinaryCredentials {
   apiKey: string;
 }
 
+interface ProductReview {
+  name: string;
+  rating: number;
+  comment: string;
+  date?: string;
+}
+
 export default function ProductsTable() {
   const [products, setProducts] = useState<Product[]>([]);
   const [expandedCells, setExpandedCells] = useState<{ [key: string]: boolean }>({});
@@ -74,7 +81,8 @@ export default function ProductsTable() {
   const handleUpdateProduct = async (
     e: React.FormEvent,
     selectedImages: File[],
-    selectedStickerImage: File | null
+    selectedStickerImage: File | null,
+    draftReview: ProductReview | null
   ) => {
     e.preventDefault();
     if (!editingProduct) return;
@@ -114,7 +122,10 @@ export default function ProductsTable() {
       formData.append("trustedFarmers", editingProduct.trustedFarmers || "638+");
       formData.append("rating", String(editingProduct.rating ?? 4.6));
       formData.append("verifiedReviewsCount", String(editingProduct.verifiedReviewsCount ?? 148));
-      formData.append("reviews", JSON.stringify(editingProduct.reviews || []));
+      formData.append("reviews", JSON.stringify([
+        ...(editingProduct.reviews || []),
+        ...(draftReview ? [draftReview] : []),
+      ]));
       
       // Append arrays
       if (editingProduct.commonlyUsedFor && editingProduct.commonlyUsedFor.length) {
