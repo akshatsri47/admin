@@ -77,18 +77,23 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (
-      !name ||
-      !description ||
-      !category ||
-      !manufacturer ||
-      !composition ||
-      !method ||
-      !dosage ||
-      !pricing.length ||
-      !imageUrls.length
-    ) {
-      return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
+    const missingFields = [
+      !name && "name",
+      !description && "description",
+      !category && "category",
+      !manufacturer && "manufacturer",
+      !composition && "composition",
+      !method && "method",
+      !dosage && "dosage",
+      !pricing.length && "pricing",
+      !imageUrls.length && "images",
+    ].filter(Boolean);
+
+    if (missingFields.length > 0) {
+      return NextResponse.json({
+        success: false,
+        error: `Missing required fields: ${missingFields.join(", ")}`,
+      }, { status: 400 });
     }
 
     const search = name.toLowerCase().replace(/\s+/g, "");

@@ -276,6 +276,28 @@ export default function ProductForm() {
     setSuccess(false);
 
     try {
+      const pricingToSubmit = pricing.packageSize && Number(pricing.price) > 0
+        ? [...formData.pricing, { ...pricing, price: Number(pricing.price) }]
+        : formData.pricing;
+      const dosageToSubmit = dose.dose || dose.arce
+        ? [...formData.dosage, dose]
+        : formData.dosage;
+      const missingFields = [
+        !formData.name && "Product Name",
+        !formData.description && "Description",
+        !formData.category && "Category",
+        !formData.manufacturer && "Manufacturer",
+        !formData.composition && "Composition",
+        !formData.method && "Method",
+        pricingToSubmit.length === 0 && "Pricing",
+        dosageToSubmit.length === 0 && "Dosage",
+        selectedImages.length === 0 && "Product Image",
+      ].filter(Boolean);
+
+      if (missingFields.length > 0) {
+        throw new Error(`Please fill: ${missingFields.join(", ")}`);
+      }
+
       // First upload images to Cloudinary
       const imageUrls = await uploadImagesToCloudinary();
       const stickerImageUrls = selectedStickerImage
@@ -300,6 +322,10 @@ export default function ProductForm() {
           data.append(key, stickerImageUrls[0] || formData.stickerImage);
         } else if (key === "reviews") {
           data.append(key, JSON.stringify(reviewsToSubmit));
+        } else if (key === "pricing") {
+          data.append(key, JSON.stringify(pricingToSubmit));
+        } else if (key === "dosage") {
+          data.append(key, JSON.stringify(dosageToSubmit));
         } else if (Array.isArray(value) || typeof value === "object") {
           data.append(key, JSON.stringify(value));
         } else {
@@ -321,7 +347,11 @@ export default function ProductForm() {
       setSuccess(true);
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
-        setError(error.response?.data?.message || "Failed to add product");
+        setError(
+          error.response?.data?.message ||
+          error.response?.data?.error ||
+          "Failed to add product"
+        );
       } else if (error instanceof Error) {
         setError(error.message);
       } else {
