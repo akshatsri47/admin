@@ -10,6 +10,7 @@ import {
   TicketIcon,
   UserGroupIcon,
   DocumentTextIcon,
+  VideoCameraIcon,
 } from "@heroicons/react/24/outline";
 
 interface AdminSidebarProps {
@@ -70,6 +71,13 @@ export default function AdminSidebar({ onHover }: AdminSidebarProps) {
           <ShoppingCartIcon className="w-5 h-5 flex-shrink-0" />
           <span className="ml-2 opacity-0 hover:opacity-100 transition-all duration-300 whitespace-nowrap">
             Slider
+          </span>
+        </Link>
+
+        <Link href="/site-video" className="flex items-center px-4 py-2 text-gray-400 hover:text-white">
+          <VideoCameraIcon className="w-5 h-5 flex-shrink-0" />
+          <span className="ml-2 opacity-0 hover:opacity-100 transition-all duration-300 whitespace-nowrap">
+            Home Video
           </span>
         </Link>
 
