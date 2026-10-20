@@ -431,6 +431,19 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
           </div>
 
           {/* COD Availability */}
+          <label className="flex items-center justify-between gap-4 rounded-lg border border-red-200 bg-red-50 p-3">
+            <span>
+              <span className="block text-sm font-semibold text-red-900">Out of Stock</span>
+              <span className="block text-xs text-red-700">Disables purchasing immediately on the customer website.</span>
+            </span>
+            <input
+              type="checkbox"
+              checked={product.isOutOfStock ?? false}
+              onChange={(e) => setProduct({ ...product, isOutOfStock: e.target.checked })}
+              className="h-5 w-5 shrink-0 accent-red-600"
+            />
+          </label>
+
           <div className="flex items-start gap-3 border border-green-200 bg-green-50 rounded-lg p-3 mt-2">
             <input
               id="editCodAvailable"

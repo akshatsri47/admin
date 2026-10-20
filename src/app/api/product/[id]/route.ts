@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "../../../../../utils/firebase";
 import { doc, getDoc ,deleteDoc, updateDoc, type UpdateData, type DocumentData} from "firebase/firestore";
 import cloudinary from "../../../../../utils/cloudinary";
+import { slugifyProductName } from "../../../../../utils/slug";
 // import { Product } from "../../../../../types/types";
 
 
@@ -139,6 +140,10 @@ export async function PUT(
     const paymentEligibilityRaw = formData.get("paymentEligibility");
     const validPaymentEligibility = ["FULL_COD_ALLOWED", "PARTIAL_COD_ONLY", "PREPAID_ONLY", "FULL_COD_AND_PREPAID", "PARTIAL_COD_AND_PREPAID"];
     const paymentEligibility = validPaymentEligibility.includes(String(paymentEligibilityRaw)) ? paymentEligibilityRaw : (existingProduct.paymentEligibility ?? (codAvailable ? "PARTIAL_COD_AND_PREPAID" : "PREPAID_ONLY"));
+    const isOutOfStockRaw = formData.get("isOutOfStock");
+    const isOutOfStock = isOutOfStockRaw !== null
+      ? isOutOfStockRaw === "true"
+      : (existingProduct.isOutOfStock ?? false);
 
     // Get image URLs - exactly as done in POST API
     const imageUrls: string[] = [];
@@ -214,6 +219,7 @@ export async function PUT(
     // Creating updated product object
     const updatedProduct = {
       name,
+      slug: slugifyProductName(name),
       description,
       category,
       images: imageUrls,
@@ -237,6 +243,7 @@ export async function PUT(
       discount,
       codAvailable,
       paymentEligibility,
+      isOutOfStock,
     };
 
     // Update in Firestore
@@ -288,6 +295,9 @@ export async function PATCH(req: NextRequest) {
     if (typeof body.codAvailable === "boolean") {
       updates.codAvailable = body.codAvailable;
     }
+    if (typeof body.isOutOfStock === "boolean") {
+      updates.isOutOfStock = body.isOutOfStock;
+    }
     if (["FULL_COD_ALLOWED", "PARTIAL_COD_ONLY", "PREPAID_ONLY", "FULL_COD_AND_PREPAID", "PARTIAL_COD_AND_PREPAID"].includes(body.paymentEligibility)) {
       updates.paymentEligibility = body.paymentEligibility;
       updates.codAvailable = body.paymentEligibility !== "PREPAID_ONLY";
@@ -303,7 +313,7 @@ export async function PATCH(req: NextRequest) {
 
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(
-        { success: false, error: "No valid fields to update. Allowed fields: codAvailable, discount" },
+        { success: false, error: "No valid fields to update. Allowed fields: codAvailable, isOutOfStock, discount" },
         { status: 400 }
       );
     }

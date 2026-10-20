@@ -29,6 +29,7 @@ export default function ProductsTable() {
   const [categories, setCategories] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [codToggling, setCodToggling] = useState<string | null>(null);
+  const [stockToggling, setStockToggling] = useState<string | null>(null);
   const [cloudinaryCredentials, setCloudinaryCredentials] = useState<CloudinaryCredentials | null>(null);
 
   useEffect(() => {
@@ -117,6 +118,7 @@ export default function ProductsTable() {
       // Append COD availability (default true when not set)
       formData.append("codAvailable", String(editingProduct.codAvailable ?? true));
       formData.append("paymentEligibility", editingProduct.paymentEligibility ?? (editingProduct.codAvailable === false ? "PREPAID_ONLY" : "PARTIAL_COD_AND_PREPAID"));
+      formData.append("isOutOfStock", String(editingProduct.isOutOfStock ?? false));
       formData.append("stickerImage", newStickerImageUrls[0] || editingProduct.stickerImage || "");
       formData.append("stickerLabel", editingProduct.stickerLabel || "TOP SELLER");
       formData.append("trustedFarmers", editingProduct.trustedFarmers || "638+");
@@ -238,6 +240,22 @@ export default function ProductsTable() {
     }
   };
 
+  const handleStockToggle = async (product: Product) => {
+    const newValue = !(product.isOutOfStock ?? false);
+    setProducts((prev) => prev.map((item) => item.id === product.id ? { ...item, isOutOfStock: newValue } : item));
+    setStockToggling(product.id);
+    setError("");
+    try {
+      await axios.patch(`/api/product/${product.id}`, { isOutOfStock: newValue });
+    } catch (err) {
+      console.error("Error toggling stock status:", err);
+      setProducts((prev) => prev.map((item) => item.id === product.id ? { ...item, isOutOfStock: !newValue } : item));
+      setError("Failed to update stock status. Please try again.");
+    } finally {
+      setStockToggling(null);
+    }
+  };
+
   // Filter products by selected category
   const filteredProducts = categoryFilter === "all" 
     ? products 
@@ -282,6 +300,7 @@ export default function ProductsTable() {
               <th className="py-3 px-4 border-b">Benefits</th>
               <th className="py-3 px-4 border-b">Method</th>
               <th className="py-3 px-4 border-b">Discount</th>
+              <th className="py-3 px-4 border-b">Stock</th>
               <th className="py-3 px-4 border-b">COD</th>
               <th className="py-3 px-4 border-b">Images</th>
               <th className="py-3 px-4 border-b">Actions</th>
@@ -323,6 +342,21 @@ export default function ProductsTable() {
                     ) : (
                       <span className="text-gray-400 text-xs">—</span>
                     )}
+                  </td>
+
+                  <td className="py-2 px-4 text-center">
+                    <button
+                      type="button"
+                      onClick={() => handleStockToggle(product)}
+                      disabled={stockToggling === product.id}
+                      className={`inline-flex items-center rounded-full border px-2 py-1 text-xs font-bold transition disabled:cursor-wait disabled:opacity-60 ${
+                        product.isOutOfStock
+                          ? "border-red-200 bg-red-100 text-red-700 hover:bg-red-200"
+                          : "border-green-200 bg-green-100 text-green-700 hover:bg-green-200"
+                      }`}
+                    >
+                      {stockToggling === product.id ? "Saving..." : product.isOutOfStock ? "Out of Stock" : "In Stock"}
+                    </button>
                   </td>
 
                   {/* COD availability — click the badge to toggle */}
@@ -388,7 +422,7 @@ export default function ProductsTable() {
               ))
             ) : (
               <tr>
-                <td colSpan={12} className="py-4 px-4 text-center text-gray-500">No products found.</td>
+                <td colSpan={13} className="py-4 px-4 text-center text-gray-500">No products found.</td>
               </tr>
             )}
           </tbody>

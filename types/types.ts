@@ -2,6 +2,7 @@
 export interface Product {
   id: string;                 // Firestore-generated Product ID
   name: string;               // Product Name (e.g., 'Bayer Evergol Xtend')
+  slug?: string;
   description: string;        // Detailed Product Description          
   category: string;           // Category (e.g., 'Seed Treatment')
   pricing:Pricing[];
@@ -28,6 +29,7 @@ export interface Product {
   discount?:number
   codAvailable?:boolean   // false = online payment only (COD disabled). Missing = COD allowed.
   paymentEligibility?: "FULL_COD_ALLOWED" | "PARTIAL_COD_ONLY" | "PREPAID_ONLY" | "FULL_COD_AND_PREPAID" | "PARTIAL_COD_AND_PREPAID";
+  isOutOfStock?: boolean;
   imageUrls?:string[]
       // List of product benefits
 }

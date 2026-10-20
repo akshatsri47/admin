@@ -3,6 +3,7 @@ import { collection, addDoc, getDocs, DocumentData } from "firebase/firestore";
 import { db } from "../../../../utils/firebase";
 import { generateKeywords } from "../../../../utils/function"
 import cloudinary from "../../../../utils/cloudinary";
+import { slugifyProductName } from "../../../../utils/slug";
 
  
 
@@ -55,6 +56,7 @@ export async function POST(req: NextRequest) {
     const paymentEligibilityRaw = formData.get("paymentEligibility");
     const validPaymentEligibility = ["FULL_COD_ALLOWED", "PARTIAL_COD_ONLY", "PREPAID_ONLY", "FULL_COD_AND_PREPAID", "PARTIAL_COD_AND_PREPAID"];
     const paymentEligibility = validPaymentEligibility.includes(String(paymentEligibilityRaw)) ? paymentEligibilityRaw : (codAvailable ? "PARTIAL_COD_AND_PREPAID" : "PREPAID_ONLY");
+    const isOutOfStock = formData.get("isOutOfStock") === "true";
 
     // Get image URLs that were uploaded to Cloudinary
     const imageUrls: string[] = [];
@@ -136,6 +138,7 @@ export async function POST(req: NextRequest) {
     // Creating product object
     const newProduct = {
       name,
+      slug: slugifyProductName(name),
       description,
       category,
       images: imageUrls, // Use the URLs directly
@@ -162,6 +165,7 @@ export async function POST(req: NextRequest) {
       discount,
       codAvailable,
       paymentEligibility,
+      isOutOfStock,
     };
 
     // Adding to Firestore

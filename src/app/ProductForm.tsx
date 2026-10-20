@@ -22,6 +22,7 @@ interface ProductFormData {
   discount: number;
   codAvailable: boolean;
   paymentEligibility: "FULL_COD_ALLOWED" | "PARTIAL_COD_ONLY" | "PREPAID_ONLY" | "FULL_COD_AND_PREPAID" | "PARTIAL_COD_AND_PREPAID";
+  isOutOfStock: boolean;
   stickerImage: string;
   stickerLabel: string;
   trustedFarmers: string;
@@ -63,6 +64,7 @@ export default function ProductForm() {
     discount: 0,
     codAvailable: true,
     paymentEligibility: "PARTIAL_COD_AND_PREPAID",
+    isOutOfStock: false,
     stickerImage: "",
     stickerLabel: "TOP SELLER",
     trustedFarmers: "638+",
@@ -867,6 +869,21 @@ export default function ProductForm() {
                 </div>
               )}
             </div>
+          </div>
+
+          <div className="border-t pt-4 mt-2">
+            <label className="flex items-center justify-between gap-4 rounded-lg border border-red-200 bg-red-50 p-4">
+              <span>
+                <span className="block text-sm font-semibold text-red-900">Out of Stock</span>
+                <span className="block text-xs text-red-700">Customers will see this product as unavailable and cannot add it to cart.</span>
+              </span>
+              <input
+                type="checkbox"
+                checked={formData.isOutOfStock}
+                onChange={(e) => setFormData({ ...formData, isOutOfStock: e.target.checked })}
+                className="h-5 w-5 shrink-0 accent-red-600"
+              />
+            </label>
           </div>
 
           <div className="border-t pt-4 mt-2">
