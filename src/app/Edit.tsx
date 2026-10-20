@@ -196,6 +196,13 @@ const EditProductModal: React.FC<EditProductModalProps> = ({
             className="w-full border p-2 rounded"
             placeholder="Description"
           />
+          <input
+            type="url"
+            value={product.videoUrl || ""}
+            onChange={(e) => setProduct({ ...product, videoUrl: e.target.value })}
+            className="w-full border p-2 rounded"
+            placeholder="Product Video URL (YouTube or direct video link)"
+          />
           <div className="flex flex-col gap-2 border p-3 rounded bg-gray-50">
             <label className="text-sm font-semibold text-gray-700">Category</label>
             {isAddingCategory ? (

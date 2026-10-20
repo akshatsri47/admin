@@ -103,6 +103,7 @@ export default function ProductsTable() {
       // Append text fields
       formData.append("name", editingProduct.name);
       formData.append("description", editingProduct.description);
+      formData.append("videoUrl", editingProduct.videoUrl || "");
       formData.append("category", editingProduct.category);
       formData.append("manufacturer", editingProduct.manufacturer);
       formData.append("composition", editingProduct.composition);

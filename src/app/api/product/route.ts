@@ -15,6 +15,7 @@ export async function POST(req: NextRequest) {
     // Extracting fields
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
+    const videoUrl = String(formData.get("videoUrl") || "").trim();
     const category = formData.get("category") as string;
     const manufacturer = formData.get("manufacturer") as string;
     const composition = formData.get("composition") as string;
@@ -140,6 +141,7 @@ export async function POST(req: NextRequest) {
       name,
       slug: slugifyProductName(name),
       description,
+      videoUrl,
       category,
       images: imageUrls, // Use the URLs directly
       createdAt: createdAt,

@@ -4,6 +4,7 @@ export interface Product {
   name: string;               // Product Name (e.g., 'Bayer Evergol Xtend')
   slug?: string;
   description: string;        // Detailed Product Description          
+  videoUrl?: string;
   category: string;           // Category (e.g., 'Seed Treatment')
   pricing:Pricing[];
   images: string[];           // Array of image URLs

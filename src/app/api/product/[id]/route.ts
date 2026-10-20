@@ -95,6 +95,10 @@ export async function PUT(
     // Extracting fields
     const name = formData.get("name") as string;
     const description = formData.get("description") as string;
+    const videoUrlField = formData.get("videoUrl");
+    const videoUrl = videoUrlField !== null
+      ? String(videoUrlField).trim()
+      : (existingProduct.videoUrl || "");
     const category = formData.get("category") as string;
     const manufacturer = formData.get("manufacturer") as string;
     const composition = formData.get("composition") as string;
@@ -221,6 +225,7 @@ export async function PUT(
       name,
       slug: slugifyProductName(name),
       description,
+      videoUrl,
       category,
       images: imageUrls,
       updatedAt,

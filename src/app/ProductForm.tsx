@@ -7,6 +7,7 @@ import Link from "next/link";
 interface ProductFormData {
   name: string;
   description: string;
+  videoUrl: string;
   category: string;
   manufacturer: string;
   composition: string;
@@ -49,6 +50,7 @@ export default function ProductForm() {
   const [formData, setFormData] = useState<ProductFormData>({
     name: "",
     description: "",
+    videoUrl: "",
     category: "",
     manufacturer: "",
     composition: "",
@@ -411,6 +413,18 @@ export default function ProductForm() {
               placeholder="Description"
               className="border border-gray-300 rounded px-3 py-2 text-sm h-20 resize-none"
               value={formData.description}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-sm text-gray-600 mb-1">Product Video URL</label>
+            <input
+              name="videoUrl"
+              type="url"
+              placeholder="YouTube or direct video link"
+              className="border border-gray-300 rounded px-3 py-2 text-sm"
+              value={formData.videoUrl}
               onChange={handleChange}
             />
           </div>
