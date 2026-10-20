@@ -422,7 +422,7 @@ export default function ProductForm() {
             <input
               name="videoUrl"
               type="url"
-              placeholder="YouTube or direct video link"
+              placeholder="Instagram, YouTube, or direct video link"
               className="border border-gray-300 rounded px-3 py-2 text-sm"
               value={formData.videoUrl}
               onChange={handleChange}
